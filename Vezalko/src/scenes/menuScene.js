@@ -67,9 +67,9 @@ export default class MenuScene extends Phaser.Scene {
         const token = localStorage.getItem('token');
         
         if (!user || !token) {
-            // Not authenticated, redirect to AppLauncher
-            console.log("No authentication found in MenuScene, redirecting to AppLauncher...");
-            window.location.href = "http://localhost:3002/login";
+            // Not authenticated, go back to login scene (which will handle waiting/redirecting)
+            console.log("No authentication found in MenuScene, going to LoginScene...");
+            this.scene.start('LoginScene');
             return;
         }
 

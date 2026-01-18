@@ -95,6 +95,8 @@
   border: none;
   font-size: 1rem;
   min-height: 140px;
+  width: 100%;
+  font-family: system-ui, -apple-system, sans-serif;
 }
 
 .gameButton:hover {

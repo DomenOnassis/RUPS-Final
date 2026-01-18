@@ -3,16 +3,42 @@ import { useEffect } from "react";
 
 export default function Home() {
   useEffect(() => {
-    // Check if user is authenticated
+    // Listen for auth data from AppLauncher
+    const handleMessage = (event: MessageEvent) => {
+      // Verify origin for security
+      if (event.origin === "http://localhost:3002") {
+        if (event.data.type === "AUTH_DATA") {
+          // Store auth data in this app's localStorage
+          localStorage.setItem("user", event.data.user);
+          localStorage.setItem("token", event.data.token);
+          
+          // Redirect to classes
+          window.location.href = "/classes";
+        }
+      }
+    };
+
+    window.addEventListener("message", handleMessage);
+
+    // Check if user is already authenticated
     const userStr = localStorage.getItem("user");
     
     if (userStr) {
       // User is authenticated, redirect to classes
       window.location.href = "/classes";
     } else {
-      // User is not authenticated, redirect to AppLauncher
-      window.location.href = "http://localhost:3002/login";
+      // Wait 2 seconds for postMessage, then redirect if no auth data received
+      setTimeout(() => {
+        const userCheck = localStorage.getItem("user");
+        if (!userCheck) {
+          window.location.href = "http://localhost:3002/login";
+        }
+      }, 2000);
     }
+
+    return () => {
+      window.removeEventListener("message", handleMessage);
+    };
   }, []);
 
   return (
