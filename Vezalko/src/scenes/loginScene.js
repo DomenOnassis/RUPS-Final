@@ -12,6 +12,33 @@ export default class LoginScene extends Phaser.Scene {
     }
 
     create() {
+        // Check if user is already logged in via AppLauncher
+        const storedUser = localStorage.getItem("user");
+        if (storedUser) {
+            try {
+                const user = JSON.parse(storedUser);
+                console.log("User already authenticated via AppLauncher:", user);
+                
+                // Store username for game scenes
+                if (user.name) {
+                    localStorage.setItem('username', user.name);
+                }
+                
+                // Skip login and go directly to menu
+                this.scene.start("MenuScene");
+                return;
+            } catch (e) {
+                console.error("Failed to parse user data:", e);
+            }
+        }
+
+        // If not logged in, redirect to AppLauncher
+        console.log("No authentication found, redirecting to AppLauncher...");
+        window.location.href = "http://localhost:3002/login";
+        return;
+
+        // NOTE: The code below is kept for reference but won't execute
+        // because we redirect to AppLauncher for authentication
         const { width, height } = this.scale;
 
         this.add.rectangle(0, 0, width, height - 150, 0xe8e8e8).setOrigin(0);

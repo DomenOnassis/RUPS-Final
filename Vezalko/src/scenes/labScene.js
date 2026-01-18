@@ -130,11 +130,14 @@ export default class LabScene extends Phaser.Scene {
         .on('pointerover', () => logoutButton.setStyle({ color: '#0044cc' }))
         .on('pointerout', () => logoutButton.setStyle({ color: '#0066ff' }))
         .on('pointerdown', () => {
+            // Clear all authentication data
+            localStorage.removeItem('user');
             localStorage.removeItem('token');
             localStorage.removeItem('email');
             localStorage.removeItem('username');
             localStorage.removeItem('name');
-            this.scene.start('MenuScene');
+            // Redirect to AppLauncher
+            window.location.href = 'http://localhost:3002/login';
         });
 
     const buttonWidth = 180;
