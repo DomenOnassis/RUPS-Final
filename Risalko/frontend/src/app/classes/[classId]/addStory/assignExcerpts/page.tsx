@@ -11,7 +11,7 @@ interface Excerpt {
 }
 
 interface Student {
-  _id: string | { $oid: string };
+  id: number;
   name: string;
   surname: string;
   email?: string;
@@ -44,7 +44,7 @@ const AssignExcerptsPage = () => {
 
     const fetchStudents = async () => {
       try {
-        const res = await fetch(`http://127.0.0.1:5000/api/classes/${classId}?populate=true`, {
+        const res = await fetch(`http://127.0.0.1:8000/api/classes/${classId}?populate=true`, {
           method: "GET",
           headers: { "Content-Type": "application/json" },
         });
@@ -74,12 +74,11 @@ const AssignExcerptsPage = () => {
   const handleRandomAssign = () => {
     const shuffledStudents = [...students].sort(() => Math.random() - 0.5);
     const assigned: Excerpt[] = excerpts.map((excerpt, index) => {
-      const studentRawId = shuffledStudents[index % students.length]._id;
-      const studentId: string = typeof studentRawId === 'string' ? studentRawId : (studentRawId as { $oid: string }).$oid;
+      const studentId = shuffledStudents[index % students.length].id;
       
       return {
         ...excerpt,
-        assignedTo: studentId,
+        assignedTo: studentId.toString(),
       };
     });
     setExcerpts(assigned);
@@ -91,17 +90,14 @@ const AssignExcerptsPage = () => {
 
   const getStudentName = (studentId?: string) => {
     if (!studentId) return null;
-    const student = students.find(s => {
-      const id = typeof s._id === 'string' ? s._id : s._id.$oid;
-      return id === studentId;
-    });
+    const student = students.find(s => s.id.toString() === studentId);
     return student ? `${student.name} ${student.surname}` : null;
   };
 
   const handleFinish = async () => {
     setSaving(true);
     try {
-      const storyRes = await fetch('http://127.0.0.1:5000/api/stories', {
+      const storyRes = await fetch('http://127.0.0.1:8000/api/stories', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -114,19 +110,23 @@ const AssignExcerptsPage = () => {
       });
 
       const storyResult = await storyRes.json();
-      let storyId: string | null = null;
-      if (storyResult.data && storyResult.data._id) {
-        storyId = typeof storyResult.data._id === 'string' ? storyResult.data._id : storyResult.data._id.$oid;
+      let storyId: number | null = null;
+      
+      if (storyResult.data && storyResult.data.id) {
+        storyId = storyResult.data.id;
       } else {
         try {
-          const listRes = await fetch('http://127.0.0.1:5000/api/stories', { method: 'GET', headers: { 'Content-Type': 'application/json' } });
+          const listRes = await fetch('http://127.0.0.1:8000/api/stories', { 
+            method: 'GET', 
+            headers: { 'Content-Type': 'application/json' } 
+          });
           const listJson = await listRes.json();
           if (listJson.data && Array.isArray(listJson.data)) {
             const match = listJson.data.find((s: any) => 
-              s.title === (storyData.title) && s.author === (storyData.author || '')
+              s.title === storyData.title && s.author === (storyData.author || '')
             );
-            if (match && match._id) {
-              storyId = typeof match._id === 'string' ? match._id : match._id.$oid;
+            if (match && match.id) {
+              storyId = match.id;
             }
           }
         } catch (e) {
@@ -141,7 +141,7 @@ const AssignExcerptsPage = () => {
       const paragraphPromises = excerpts.map(async (excerpt) => {
         if (!excerpt.assignedTo) return null;
 
-        const res = await fetch(`http://127.0.0.1:5000/api/users/${excerpt.assignedTo}/paragraphs`, {
+        const res = await fetch(`http://127.0.0.1:8000/api/users/${excerpt.assignedTo}/paragraphs`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -154,7 +154,7 @@ const AssignExcerptsPage = () => {
 
         if (!res.ok) {
           const err = await res.json();
-          console.error('Paragraph creation error:', err);
+          console.error('Paragraph creation error:', err.detail);
           return null;
         }
         return await res.json();
@@ -168,7 +168,7 @@ const AssignExcerptsPage = () => {
         console.warn(`Only ${successCount} of ${assignedCount} paragraphs created`);
       }
 
-      const classRes = await fetch(`http://127.0.0.1:5000/api/classes/${classId}?populate=true`, {
+      const classRes = await fetch(`http://127.0.0.1:8000/api/classes/${classId}?populate=true`, {
         method: 'GET',
         headers: { 'Content-Type': 'application/json' },
       });
@@ -176,11 +176,9 @@ const AssignExcerptsPage = () => {
 
       if (classData.data) {
         const currentStories = classData.data.stories || [];
-        const storyIds = currentStories.map((s: any) => 
-          typeof s._id === 'string' ? s._id : s._id.$oid
-        );
+        const storyIds = currentStories.map((s: any) => s.id);
         
-        await fetch(`http://127.0.0.1:5000/api/classes/${classId}`, {
+        await fetch(`http://127.0.0.1:8000/api/classes/${classId}`, {
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -321,14 +319,11 @@ const AssignExcerptsPage = () => {
                           className="px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-900 text-gray-700 dark:text-gray-300 focus:ring-2 focus:ring-purple-500 focus:outline-none"
                         >
                           <option value="">-- Izberi učenca --</option>
-                          {students.map((student) => {
-                            const studentId = typeof student._id === 'string' ? student._id : student._id.$oid;
-                            return (
-                              <option key={studentId} value={studentId}>
-                                {student.name} {student.surname}
-                              </option>
-                            );
-                          })}
+                          {students.map((student) => (
+                            <option key={student.id} value={student.id.toString()}>
+                              {student.name} {student.surname}
+                            </option>
+                          ))}
                         </select>
                       </div>
                     ) : (

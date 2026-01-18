@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import Cookies from "js-cookie";
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -21,7 +22,8 @@ export default function RegisterPage() {
     }
 
     try {
-      const res = await fetch("http://127.0.0.1:5000/api/users", {
+      // CHANGED: Updated endpoint to /api/register instead of /api/users
+      const res = await fetch("http://127.0.0.1:8000/api/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -36,13 +38,20 @@ export default function RegisterPage() {
       const data = await res.json();
 
       if (!res.ok) {
-        setError(data.error || "Pri registraciji je prišlo do napake.");
+        // CHANGED: Backend now returns 'detail' instead of 'error'
+        setError(data.detail || "Pri registraciji je prišlo do napake.");
         setSuccess(null);
         return;
       }
 
-      if (data.data) {
-        localStorage.setItem('user', JSON.stringify(data.data));
+      // CHANGED: Save to cookies instead of localStorage
+      if (data) {
+        console.log('User data from register:', data);
+        Cookies.set('user', JSON.stringify(data));
+        Cookies.set('userType', data.type);
+        if (data.id) {
+          Cookies.set('userId', data.id.toString());
+        }
       }
 
       setSuccess("Uporabnik uspešno ustvarjen!");
@@ -99,6 +108,7 @@ export default function RegisterPage() {
               value={name}
               onChange={(e) => setName(e.target.value)}
               className="input-text"
+              required
             />
           </div>
 
@@ -112,6 +122,7 @@ export default function RegisterPage() {
               value={surname}
               onChange={(e) => setSurname(e.target.value)}
               className="input-text"
+              required
             />
           </div>
 
@@ -125,6 +136,7 @@ export default function RegisterPage() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               className="input-text"
+              required
             />
           </div>
 
@@ -138,6 +150,7 @@ export default function RegisterPage() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               className="input-text"
+              required
             />
           </div>
 
@@ -151,6 +164,7 @@ export default function RegisterPage() {
               value={confirm}
               onChange={(e) => setConfirm(e.target.value)}
               className="input-text"
+              required
             />
           </div>
 

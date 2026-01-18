@@ -267,13 +267,16 @@ export default class LoginScene extends Phaser.Scene {
     }
 
     async login(username, password) {
-        const formData = new FormData();
-        formData.append('username', username);
-        formData.append('password', password);
-
         const response = await fetch(`${API_URL}/login`, {
             method: 'POST',
-            body: formData
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                email: username,  // Assuming username is the email
+                password: password,
+                code: null
+            })
         });
 
         if (!response.ok) {
@@ -282,8 +285,17 @@ export default class LoginScene extends Phaser.Scene {
         }
 
         const data = await response.json();
-        localStorage.setItem('token', data.access_token);
-        localStorage.setItem('username', username);
+        
+        // Backend returns: {data: user, access_token: "...", token_type: "bearer"}
+        if (data.access_token) {
+            localStorage.setItem('token', data.access_token);
+        }
+        
+        if (data.data) {
+            // Store the full user object
+            localStorage.setItem('user', JSON.stringify(data.data));
+            localStorage.setItem('username', data.data.name || username);
+        }
 
         this.cleanup();
         this.scene.start('LabScene');
@@ -296,9 +308,11 @@ export default class LoginScene extends Phaser.Scene {
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({
-                username: username,
+                name: username,
+                surname: '',  // Add surname if needed
                 email: email,
-                password: password
+                password: password,
+                type: 'student'  // Adjust as needed
             })
         });
 
@@ -311,13 +325,24 @@ export default class LoginScene extends Phaser.Scene {
             throw new Error(errorMsg);
         }
 
-        const data = await response.json();
-        localStorage.setItem('token', data.access_token);
-        localStorage.setItem('username', username);
-        localStorage.setItem('email', email);
-
+        const user = await response.json();
+        
+        // Backend returns user object directly (not wrapped)
+        // But there's no access_token on register, so we need to login
+        // Option 1: Auto-login after register
+        return this.login(email, password);
+        
+        // Option 2: Just store user and redirect
+        /*
+        if (user.id) {
+            localStorage.setItem('user', JSON.stringify(user));
+            localStorage.setItem('username', user.name || username);
+            localStorage.setItem('email', user.email || email);
+        }
+        
         this.cleanup();
         this.scene.start('LabScene');
+        */
     }
 
     cleanup() {

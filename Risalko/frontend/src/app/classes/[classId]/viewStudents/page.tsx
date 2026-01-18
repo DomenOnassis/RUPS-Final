@@ -39,7 +39,7 @@ const ViewStudents = () => {
     useEffect(() => {
         const fetchStudents = async () => {
             try {
-                const res = await fetch(`http://127.0.0.1:5000/api/classes/${classId}?populate=true`);
+                const res = await fetch(`http://127.0.0.1:8000/api/classes/${classId}?populate=true`);
                 const data = await res.json();
 
                 if (res.ok && data.data) {
@@ -63,7 +63,7 @@ const ViewStudents = () => {
         if (!confirm("Ali ste prepričani, da želite odstraniti učenca iz razreda?")) return;
 
         try {
-            const res = await fetch(`http://127.0.0.1:5000/api/classes/${classId}/students/${studentId}`, {
+            const res = await fetch(`http://127.0.0.1:8000/api/classes/${classId}/students/${studentId}`, {
                 method: "DELETE",
             });
 

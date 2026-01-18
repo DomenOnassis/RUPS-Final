@@ -7,7 +7,7 @@ import { ChevronLeft, ChevronRight, X } from "lucide-react";
 
 const ClassPage = () => {
   type Story = {
-    _id: string | { $oid: string };
+    id: number;
     title: string;
     short_description: string;
     author?: string;
@@ -15,9 +15,9 @@ const ClassPage = () => {
   };
 
   type FinalizedStory = {
-    story_id: string | { $oid: string };
+    story_id: number;
     paragraphs: Array<{
-      paragraph_id: string | { $oid: string };
+      paragraph_id: number;
       content: string;
       drawing: string | null;
       order: number;
@@ -33,9 +33,9 @@ const ClassPage = () => {
   const [finalizedStories, setFinalizedStories] = useState<FinalizedStory[]>([]);
   const [loading, setLoading] = useState(true);
   const [userType, setUserType] = useState<string | null>(null);
-  const [userId, setUserId] = useState<string | null>(null);
+  const [userId, setUserId] = useState<number | null>(null);
   const [className, setClassName] = useState('');
-  const [userParagraphs, setUserParagraphs] = useState<string[]>([]);
+  const [userParagraphs, setUserParagraphs] = useState<number[]>([]);
   const [activeTab, setActiveTab] = useState<"workshop" | "finished">(
     "workshop"
   );
@@ -52,10 +52,8 @@ const ClassPage = () => {
       try {
         const user = JSON.parse(userStored);
         setUserType(user.type || null);
-        setUserId(user._id?.$oid || user._id || user.id);
-        const paragraphIds = (user.paragraphs || []).map((p: any) =>
-          typeof p === 'string' ? p : p.$oid
-        );
+        setUserId(user.id);
+        const paragraphIds = user.paragraphs || [];
         setUserParagraphs(paragraphIds);
       } catch (e) {
         console.error('Failed to parse user from localStorage', e);
@@ -66,7 +64,7 @@ const ClassPage = () => {
   useEffect(() => {
     const fetchClassData = async () => {
       try {
-        const res = await fetch(`http://127.0.0.1:5000/api/classes/${classId}?populate=true`, {
+        const res = await fetch(`http://127.0.0.1:8000/api/classes/${classId}?populate=true`, {
           method: "GET",
           headers: { "Content-Type": "application/json" },
         });
@@ -221,9 +219,8 @@ const ClassPage = () => {
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                   {stories.filter(s => !s.is_finished).map((story) => (
                     <Link
-                      key={typeof story._id === "string" ? story._id : story._id.$oid}
-                      href={`/classes/${classId}/${typeof story._id === "string" ? story._id : story._id.$oid
-                        }`}
+                      key={story.id}
+                      href={`/classes/${classId}/${story.id}`}
                       className="card bg-sky-400 cursor-pointer max-w-lg"
                     >
                       <h3 className="text-lg font-semibold text-text mb-2">
@@ -256,13 +253,11 @@ const ClassPage = () => {
               </h2>
 
               {finalizedStories.length === 0 ? (
-                <p className="text-text-muted text-center py-8">Ni dokončanih slikanica.</p>
+                <p className="text-text-muted text-center py-8">Ni dokončanih slikannic.</p>
               ) : (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                   {finalizedStories.map((story, idx) => {
-                    const storyId = story.story_id
-                      ? (typeof story.story_id === "string" ? story.story_id : story.story_id.$oid)
-                      : `story-${idx}`;
+                    const storyId = story.story_id || idx;
                     const hasParagraphs = story.paragraphs && story.paragraphs.length > 0;
 
                     return (
