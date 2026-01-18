@@ -1,5 +1,5 @@
 "use client";
-import { useState, FormEvent } from "react";
+import { useState, FormEvent, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import styles from "./login.module.css";
 import { API_ENDPOINTS } from "@/config/api";
@@ -12,6 +12,18 @@ export default function LoginPage() {
   const [isStudentLogin, setIsStudentLogin] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [isCheckingAuth, setIsCheckingAuth] = useState(true);
+
+  // Check if user is already logged in
+  useEffect(() => {
+    const userStr = localStorage.getItem("user");
+    if (userStr) {
+      // User is already logged in, redirect to home
+      router.push("/");
+    } else {
+      setIsCheckingAuth(false);
+    }
+  }, [router]);
 
   async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -53,6 +65,17 @@ export default function LoginPage() {
       setError("Connection error. Please try again.");
       setIsLoading(false);
     }
+  }
+
+  // Show loading while checking authentication
+  if (isCheckingAuth) {
+    return (
+      <main className={styles.container}>
+        <div className={styles.card}>
+          <p>Loading...</p>
+        </div>
+      </main>
+    );
   }
 
   return (
