@@ -148,7 +148,8 @@ const Classes = () => {
   const handleLogout = () => {
     localStorage.removeItem('user');
     localStorage.removeItem('token');
-    router.push('/');
+    // Redirect to AppLauncher login
+    window.location.href = 'http://localhost:3002/login';
   };
 
   const isTeacher = userType === "teacher";

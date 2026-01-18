@@ -62,10 +62,20 @@ export default class MenuScene extends Phaser.Scene {
             .setInteractive({ useHandCursor: true })
             .on('pointerdown', () => this.toggleSwitch());
 
+        // Check authentication before showing menu
+        const user = localStorage.getItem('user');
+        const token = localStorage.getItem('token');
+        
+        if (!user || !token) {
+            // Not authenticated, go back to login scene (which will handle waiting/redirecting)
+            console.log("No authentication found in MenuScene, going to LoginScene...");
+            this.scene.start('LoginScene');
+            return;
+        }
+
         // ui elem
         this.createUI();
 
-        const token = localStorage.getItem('token');
         if (token) {
             this.scene.start('LabScene');
             return;
@@ -187,8 +197,28 @@ export default class MenuScene extends Phaser.Scene {
     }
 
     createUI() {
-       const rectX = this.scale.width / 2;
+        const rectX = this.scale.width / 2;
         const rectY = this.scale.height / 2 - 50;
+        
+        // Add logout button in top-right corner
+        const logoutButton = this.add.text(this.scale.width - 40, 30, '↩ Logout', {
+            fontFamily: 'Arial',
+            fontSize: '20px',
+            color: '#0066ff',
+            padding: { x: 20, y: 10 }
+        })
+            .setOrigin(1, 0)
+            .setInteractive({ useHandCursor: true })
+            .on('pointerover', () => logoutButton.setStyle({ color: '#0044cc' }))
+            .on('pointerout', () => logoutButton.setStyle({ color: '#0066ff' }))
+            .on('pointerdown', () => {
+                // Clear authentication data
+                localStorage.removeItem('user');
+                localStorage.removeItem('token');
+                localStorage.removeItem('username');
+                // Redirect to AppLauncher
+                window.location.href = 'http://localhost:3002/login';
+            });
         
         // vogali gumba
         const cornerRadius = 15; 
