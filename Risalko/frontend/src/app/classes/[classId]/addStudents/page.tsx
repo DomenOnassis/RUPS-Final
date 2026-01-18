@@ -9,8 +9,6 @@ type Student = {
     lastName: string;
 };
 
-
-
 const AddStudentsPage = () => {
     const [classData, setClassData] = useState({
         class_name: ''
@@ -20,14 +18,13 @@ const AddStudentsPage = () => {
     const classId = params.classId;
 
     const [loading, setLoading] = useState(true);
+    
     useEffect(() => {
-
         if (!classId) return;
 
         const fetchClass = async () => {
             try {
-
-                const res = await fetch(`http://127.0.0.1:5000/api/classes/${classId}`);
+                const res = await fetch(`http://127.0.0.1:8000/api/classes/${classId}`);
                 if (!res.ok) throw new Error('Failed to fetch class data');
 
                 const result = await res.json();
@@ -77,13 +74,14 @@ const AddStudentsPage = () => {
         }
 
         try {
-            const createdStudentIds: string[] = [];
+            const createdStudentIds: number[] = []; // CHANGED: string[] to number[]
 
             for (const student of validStudents) {
                 const email = `${student.firstName.toLowerCase()}.${student.lastName.toLowerCase()}@student.risalko.si`;
                 const password = 'student123'; // Default password for students
 
-                const res = await fetch('http://127.0.0.1:5000/api/users', {
+                // CHANGED: Endpoint from /api/users to /api/register
+                const res = await fetch('http://127.0.0.1:8000/api/register', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
@@ -98,32 +96,34 @@ const AddStudentsPage = () => {
                 const result = await res.json();
 
                 if (!res.ok) {
-                    console.error('Failed to create student:', result.error);
-                    throw new Error(result.error || 'Failed to create student');
+                    // CHANGED: error to detail
+                    console.error('Failed to create student:', result.detail);
+                    throw new Error(result.detail || 'Failed to create student');
                 }
 
-                const studentId = result.data?._id?.$oid || result.data?._id;
+                // CHANGED: Simplified ID extraction (no more MongoDB $oid)
+                // Register returns the user object directly, not wrapped in 'data'
+                const studentId = result.id;
                 if (studentId) {
                     createdStudentIds.push(studentId);
                 }
             }
 
-            const classRes = await fetch(`http://127.0.0.1:5000/api/classes/${classId}`);
-            const classData = await classRes.json();
+            // Fetch current class data
+            const classRes = await fetch(`http://127.0.0.1:8000/api/classes/${classId}`);
+            const classDataResult = await classRes.json();
 
             if (!classRes.ok) {
                 throw new Error('Failed to fetch class data');
             }
 
-            const existingStudentIds =
-                classData.data?.students?.map((s: any) => {
-                    const id = s._id?.$oid || s._id || s;
-                    return typeof id === 'object' && id.$oid ? id.$oid : String(id);
-                }) || [];
+            // CHANGED: Simplified student ID extraction
+            const existingStudentIds = classDataResult.data?.students?.map((s: any) => s.id) || [];
 
             const allStudentIds = [...existingStudentIds, ...createdStudentIds];
 
-            const updateRes = await fetch(`http://127.0.0.1:5000/api/classes/${classId}`, {
+            // Update class with all student IDs
+            const updateRes = await fetch(`http://127.0.0.1:8000/api/classes/${classId}`, {
                 method: 'PATCH',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -134,10 +134,11 @@ const AddStudentsPage = () => {
             const updateResult = await updateRes.json();
 
             if (!updateRes.ok) {
-                throw new Error(updateResult.error || 'Failed to update class');
+                // CHANGED: error to detail
+                throw new Error(updateResult.detail || 'Failed to update class');
             }
 
-            alert(`✅ Uspešno dodanih ${createdStudentIds.length} učencev v razred ${classData.data?.class_name || ''}`);
+            alert(`✅ Uspešno dodanih ${createdStudentIds.length} učencev v razred ${classData.class_name || ''}`);
 
             setStudents([{ firstName: '', lastName: '' }]);
 
@@ -145,7 +146,6 @@ const AddStudentsPage = () => {
             console.error('Error adding students:', error);
             alert(`Napaka pri dodajanju učencev: ${error instanceof Error ? error.message : 'Unknown error'}`);
         }
-
     };
 
     if (loading) {

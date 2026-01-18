@@ -5,24 +5,24 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 
 interface Paragraph {
-  _id: string | { $oid: string };
-  story_id: string | { $oid: string };
+  id: number;
+  story_id: number;
   content: string;
   drawing: string | null;
   order: number;
 }
 
 interface Student {
-  _id: string | { $oid: string };
+  id: number;
   name: string;
   surname: string;
   email: string;
   code?: string;
-  paragraphs: Array<string | { $oid: string }>;
+  paragraphs: number[];
 }
 
 interface Story {
-  _id: string | { $oid: string };
+  id: number;
   title: string;
   author: string;
   short_description: string;
@@ -34,7 +34,7 @@ interface StoryData {
   story: Story | null;
   paragraphs: Paragraph[];
   students: Student[];
-  paragraphAssignments: Map<string, string>;
+  paragraphAssignments: Map<number, number>;
 }
 
 export default function StoryPage() {
@@ -50,10 +50,10 @@ export default function StoryPage() {
   });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [saving, setSaving] = useState<string | null>(null);
+  const [saving, setSaving] = useState<number | null>(null);
   const [userType, setUserType] = useState<string | null>(null);
-  const [userId, setUserId] = useState<string | null>(null);
-  const [userParagraphs, setUserParagraphs] = useState<string[]>([]);
+  const [userId, setUserId] = useState<number | null>(null);
+  const [userParagraphs, setUserParagraphs] = useState<number[]>([]);
   const [isFinalizingStory, setIsFinalizingStory] = useState(false);
 
   useEffect(() => {
@@ -61,7 +61,7 @@ export default function StoryPage() {
       try {
         // Get user info first
         let userType: string | null = null;
-        let userParagraphIds: string[] = [];
+        let userParagraphIds: number[] = [];
         
         const userStored = localStorage.getItem('user');
         if (userStored) {
@@ -69,34 +69,22 @@ export default function StoryPage() {
             const user = JSON.parse(userStored);
             userType = user.type || null;
             setUserType(userType);
-            setUserId(user._id?.$oid || user._id || user.id);
+            setUserId(user.id);
             
             // Normalize paragraph IDs from user object
-            userParagraphIds = (user.paragraphs || []).map((p: any) => {
-              if (typeof p === 'string') {
-                return p;
-              } else if (p.$oid) {
-                return p.$oid;
-              } else if (p._id) {
-                return typeof p._id === 'string' ? p._id : p._id.$oid;
-              }
-              return p;
-            });
+            userParagraphIds = user.paragraphs || [];
             setUserParagraphs(userParagraphIds);
           } catch (e) {
             console.error('Failed to parse user from localStorage', e);
           }
         }
 
-        const storyRes = await fetch(`http://127.0.0.1:5000/api/stories`, {
+        const storyRes = await fetch(`http://127.0.0.1:8000/api/stories`, {
           method: "GET",
           headers: { "Content-Type": "application/json" },
         });
         const storyData = await storyRes.json();
-        const story = storyData.data?.find((s: any) => {
-          const sid = typeof s._id === 'string' ? s._id : s._id.$oid;
-          return sid === storyId;
-        });
+        const story = storyData.data?.find((s: any) => s.id === parseInt(storyId as string));
 
         if (!story) {
           setError("Zgodba ni najdena");
@@ -104,8 +92,7 @@ export default function StoryPage() {
           return;
         }
 
-        const normalizedStoryId = typeof story._id === 'string' ? story._id : story._id.$oid;
-        const paragraphsRes = await fetch(`http://127.0.0.1:5000/api/stories/${normalizedStoryId}/paragraphs`, {
+        const paragraphsRes = await fetch(`http://127.0.0.1:8000/api/stories/${story.id}/paragraphs`, {
           method: "GET",
           headers: { "Content-Type": "application/json" },
         });
@@ -114,14 +101,13 @@ export default function StoryPage() {
 
         if (userType === "student") {
           paragraphs = paragraphs.filter((p: Paragraph) => {
-            const pId = typeof p._id === 'string' ? p._id : p._id.$oid;
-            const isAssigned = userParagraphIds.includes(pId);
-            console.log(`Paragraph ${pId} assigned to student:`, isAssigned, 'User paragraphs:', userParagraphIds);
+            const isAssigned = userParagraphIds.includes(p.id);
+            console.log(`Paragraph ${p.id} assigned to student:`, isAssigned, 'User paragraphs:', userParagraphIds);
             return isAssigned;
           });
         }
 
-        const classRes = await fetch(`http://127.0.0.1:5000/api/classes/${classId}?populate=true`, {
+        const classRes = await fetch(`http://127.0.0.1:8000/api/classes/${classId}?populate=true`, {
           method: "GET",
           headers: { "Content-Type": "application/json" },
         });
@@ -135,15 +121,13 @@ export default function StoryPage() {
 
         const students = classData.data.students || [];
         
-        const assignments = new Map<string, string>();
+        const assignments = new Map<number, number>();
         
         for (const student of students) {
-          const studentId = typeof student._id === 'string' ? student._id : student._id.$oid;
           const paragraphIds = student.paragraphs || [];
           
           for (const pId of paragraphIds) {
-            const paragraphId = typeof pId === 'string' ? pId : pId.$oid;
-            assignments.set(paragraphId, studentId);
+            assignments.set(pId, student.id);
           }
         }
 
@@ -166,26 +150,18 @@ export default function StoryPage() {
     }
   }, [classId, storyId]);
 
-  const handleStudentChange = async (paragraphId: string, newStudentId: string) => {
+  const handleStudentChange = async (paragraphId: number, newStudentId: string) => {
     setSaving(paragraphId);
     try {
       const oldStudentId = data.paragraphAssignments.get(paragraphId);
       
       if (oldStudentId) {
-        const oldStudent = data.students.find(s => {
-          const sid = typeof s._id === 'string' ? s._id : s._id.$oid;
-          return sid === oldStudentId;
-        });
+        const oldStudent = data.students.find(s => s.id === oldStudentId);
         
         if (oldStudent) {
-          const updatedParagraphs = oldStudent.paragraphs
-            .filter(pId => {
-              const pid = typeof pId === 'string' ? pId : pId.$oid;
-              return pid !== paragraphId;
-            })
-            .map(pId => typeof pId === 'string' ? pId : pId.$oid);
+          const updatedParagraphs = oldStudent.paragraphs.filter(pId => pId !== paragraphId);
           
-          await fetch(`http://127.0.0.1:5000/api/users/${oldStudentId}`, {
+          await fetch(`http://127.0.0.1:8000/api/users/${oldStudentId}`, {
             method: "PATCH",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ paragraphs: updatedParagraphs }),
@@ -193,19 +169,15 @@ export default function StoryPage() {
         }
       }
       
-      if (newStudentId) {
-        const newStudent = data.students.find(s => {
-          const sid = typeof s._id === 'string' ? s._id : s._id.$oid;
-          return sid === newStudentId;
-        });
+      const newStudentIdNum = newStudentId ? parseInt(newStudentId) : null;
+      
+      if (newStudentIdNum) {
+        const newStudent = data.students.find(s => s.id === newStudentIdNum);
         
         if (newStudent) {
-          const currentParagraphs = newStudent.paragraphs.map(pId => 
-            typeof pId === 'string' ? pId : pId.$oid
-          );
-          const updatedParagraphs = [...currentParagraphs, paragraphId];
+          const updatedParagraphs = [...newStudent.paragraphs, paragraphId];
           
-          await fetch(`http://127.0.0.1:5000/api/users/${newStudentId}`, {
+          await fetch(`http://127.0.0.1:8000/api/users/${newStudentIdNum}`, {
             method: "PATCH",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ paragraphs: updatedParagraphs }),
@@ -215,24 +187,19 @@ export default function StoryPage() {
       
       setData(prev => {
         const newAssignments = new Map(prev.paragraphAssignments);
-        if (newStudentId) {
-          newAssignments.set(paragraphId, newStudentId);
+        if (newStudentIdNum) {
+          newAssignments.set(paragraphId, newStudentIdNum);
         } else {
           newAssignments.delete(paragraphId);
         }
         
         const updatedStudents = prev.students.map(student => {
-          const studentId = typeof student._id === 'string' ? student._id : student._id.$oid;
-          
-          if (studentId === oldStudentId) {
+          if (student.id === oldStudentId) {
             return {
               ...student,
-              paragraphs: student.paragraphs.filter(pId => {
-                const pid = typeof pId === 'string' ? pId : pId.$oid;
-                return pid !== paragraphId;
-              }),
+              paragraphs: student.paragraphs.filter(pId => pId !== paragraphId),
             };
-          } else if (studentId === newStudentId) {
+          } else if (student.id === newStudentIdNum) {
             return {
               ...student,
               paragraphs: [...student.paragraphs, paragraphId],
@@ -266,7 +233,7 @@ export default function StoryPage() {
     setIsFinalizingStory(true);
     try {
       const res = await fetch(
-        `http://127.0.0.1:5000/api/classes/${classId}/finalize-story/${storyId}`,
+        `http://127.0.0.1:8000/api/classes/${classId}/finalize-story/${storyId}`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -369,16 +336,12 @@ export default function StoryPage() {
               ) : (
                 <div className="space-y-6">
                   {data.paragraphs.map((paragraph) => {
-                    const paragraphId = typeof paragraph._id === 'string' ? paragraph._id : paragraph._id.$oid;
-                    const assignedStudentId = data.paragraphAssignments.get(paragraphId);
-                    const assignedStudent = data.students.find(s => {
-                      const sid = typeof s._id === 'string' ? s._id : s._id.$oid;
-                      return sid === assignedStudentId;
-                    });
+                    const assignedStudentId = data.paragraphAssignments.get(paragraph.id);
+                    const assignedStudent = data.students.find(s => s.id === assignedStudentId);
 
                     return (
                       <div
-                        key={paragraphId}
+                        key={paragraph.id}
                         className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl shadow p-5"
                       >
                         <div className="flex items-start gap-3 mb-3">
@@ -403,19 +366,16 @@ export default function StoryPage() {
 
                           <select
                             value={assignedStudentId || ''}
-                            onChange={(e) => handleStudentChange(paragraphId, e.target.value)}
-                            disabled={saving === paragraphId}
+                            onChange={(e) => handleStudentChange(paragraph.id, e.target.value)}
+                            disabled={saving === paragraph.id}
                             className="ml-4 px-3 py-1 border border-gray-300 dark:border-gray-700 rounded-md bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-100 focus:ring-2 focus:ring-purple-500 focus:outline-none disabled:opacity-50"
                           >
                             <option value="">-- Izberi učenca --</option>
-                            {data.students.map((student) => {
-                              const studentId = typeof student._id === 'string' ? student._id : student._id.$oid;
-                              return (
-                                <option key={studentId} value={studentId}>
-                                  {student.name} {student.surname}
-                                </option>
-                              );
-                            })}
+                            {data.students.map((student) => (
+                              <option key={student.id} value={student.id}>
+                                {student.name} {student.surname}
+                              </option>
+                            ))}
                           </select>
                         </div>
 
@@ -448,35 +408,31 @@ export default function StoryPage() {
                 <p className="text-text-muted text-center py-8">Nemaš dodeljenega odlomka za to zgodbo.</p>
               ) : (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {data.paragraphs.map((paragraph) => {
-                    const paragraphId = typeof paragraph._id === 'string' ? paragraph._id : paragraph._id.$oid;
+                  {data.paragraphs.map((paragraph) => (
+                    <Link
+                      key={paragraph.id}
+                      href={`/classes/${classId}/${storyId}/${paragraph.id}`}
+                      className="card bg-sky-400 cursor-pointer"
+                    >
+                      <div className="flex items-center justify-between mb-3">
+                        <span className="inline-block bg-sky-600 text-white text-xs font-bold px-2 py-1 rounded">
+                          Odlomek #{paragraph.order}
+                        </span>
+                      </div>
+                      
+                      <p className="text-text line-clamp-4 leading-relaxed mb-4">
+                        {paragraph.content}
+                      </p>
 
-                    return (
-                      <Link
-                        key={paragraphId}
-                        href={`/classes/${classId}/${storyId}/${paragraphId}`}
-                        className="card bg-sky-400 cursor-pointer"
-                      >
-                        <div className="flex items-center justify-between mb-3">
-                          <span className="inline-block bg-sky-600 text-white text-xs font-bold px-2 py-1 rounded">
-                            Odlomek #{paragraph.order}
-                          </span>
-                        </div>
-                        
-                        <p className="text-text line-clamp-4 leading-relaxed mb-4">
-                          {paragraph.content}
-                        </p>
-
-                        <div className="pt-4 border-t border-text/20">
-                          {paragraph.drawing ? (
-                            <p className="text-xs text-text-muted">🎨 Tvoja risba je že narejena</p>
-                          ) : (
-                            <p className="text-xs text-text-muted">✏️ Pripravljeni na risanje?</p>
-                          )}
-                        </div>
-                      </Link>
-                    );
-                  })}
+                      <div className="pt-4 border-t border-text/20">
+                        {paragraph.drawing ? (
+                          <p className="text-xs text-text-muted">🎨 Tvoja risba je že narejena</p>
+                        ) : (
+                          <p className="text-xs text-text-muted">✏️ Pripravljeni na risanje?</p>
+                        )}
+                      </div>
+                    </Link>
+                  ))}
                 </div>
               )}
             </div>

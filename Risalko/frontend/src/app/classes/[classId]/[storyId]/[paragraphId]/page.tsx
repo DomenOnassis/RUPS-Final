@@ -29,7 +29,7 @@ export default function ParagraphDrawPage() {
     const fetchParagraph = async () => {
       try {
         const res = await fetch(
-          `http://127.0.0.1:5000/api/paragraphs/${paragraphId}`,
+          `http://127.0.0.1:8000/api/paragraphs/${paragraphId}`,
           {
             method: "GET",
             headers: { "Content-Type": "application/json" },
@@ -68,7 +68,7 @@ export default function ParagraphDrawPage() {
 
       // Save to backend
       const res = await fetch(
-        `http://127.0.0.1:5000/api/paragraphs/${paragraphId}`,
+        `http://127.0.0.1:8000/api/paragraphs/${paragraphId}`,
         {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },

@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import { Pencil, Trash2, LogOut } from 'lucide-react';
 
 type ClassType = {
-  _id?: { $oid?: string } | string;
+  id?: number;
   class_name?: string;
   students?: any[];
   color: string;
@@ -18,22 +18,39 @@ const Classes = () => {
   const [loading, setLoading] = useState(true);
 
   const [userName, setUserName] = useState('');
-  const [userId, setUserId] = useState<string | null>(null);
+  const [userId, setUserId] = useState<number | null>(null);
   const [userType, setUserType] = useState<string | null>(null);
 
   useEffect(() => {
     const userStored = localStorage.getItem('user');
+    
+    console.log('=== USER AUTH CHECK ===');
+    console.log('Raw localStorage user:', userStored);
+    
     if (!userStored) {
+      console.log('No user in localStorage, redirecting to login');
       router.push('/');
       return;
     }
 
     try {
       const user = JSON.parse(userStored);
-      const uid = user._id?.$oid || user._id || user.id;
+      console.log('Parsed user object:', user);
+      
+      const uid = user.id;
+      
+      if (!uid) {
+        console.error('User object has no id field:', user);
+        alert('Napaka pri prijavi. Prosimo, prijavite se ponovno.');
+        router.push('/');
+        return;
+      }
+      
       setUserId(uid);
       setUserName(`${user.name || ''} ${user.surname || ''}`);
       setUserType(user.type || null);
+      
+      console.log('User authenticated:', { uid, type: user.type });
     } catch (e) {
       console.error('Failed to parse user from localStorage', e);
       router.push('/');
@@ -42,46 +59,61 @@ const Classes = () => {
   }, [router]);
 
   useEffect(() => {
-    if (!userId) return;
+    if (!userId) {
+      console.log('Waiting for userId...');
+      return;
+    }
 
     const fetchClasses = async () => {
+      console.log('=== FETCHING CLASSES ===');
+      console.log('User ID:', userId);
+      console.log('User Type:', userType);
+      
       try {
         const res = await fetch(
-          `http://127.0.0.1:5000/api/classes?populate=true`
+          `http://127.0.0.1:8000/api/classes?populate=true`
         );
         if (!res.ok) throw new Error(`Failed to fetch: ${res.statusText}`);
 
         const result = await res.json();
+        console.log('Raw API response:', result);
+        console.log('All classes:', result.data);
 
         if (userType === "student") {
           const studentClasses = (result.data || []).filter((cls: any) => {
-            const studentIds = cls.students?.map((s: any) =>
-              typeof s._id === 'string' ? s._id : s._id?.$oid
-            ) || [];
-            return studentIds.includes(userId);
+            const studentIds = cls.students?.map((s: any) => s.id) || [];
+            const isInClass = studentIds.includes(userId);
+            console.log(`Class ${cls.id} (${cls.class_name}): student IDs:`, studentIds, 'contains userId?', isInClass);
+            return isInClass;
           });
 
-          const normalized = studentClasses.map((cls: any) => ({
-            ...cls,
-            _id: cls._id?.$oid || cls._id,
-          }));
-
-          setClasses(normalized);
+          console.log('Filtered student classes:', studentClasses);
+          setClasses(studentClasses);
         } else {
+          console.log('=== TEACHER CLASS FILTERING ===');
           const teacherClasses = (result.data || []).filter((cls: any) => {
-            const clsTeacherId = cls.teacher?.[0]?._id?.$oid || cls.teacher?.[0]?._id || cls.teacher?.$oid || cls.teacher;
-            return clsTeacherId === userId;
+            console.log(`Checking class ${cls.id} (${cls.class_name}):`);
+            console.log('  - Full class object:', cls);
+            console.log('  - cls.teacher:', cls.teacher);
+            console.log('  - cls.teacher_id:', cls.teacher_id);
+            
+            // Try multiple possible teacher ID locations
+            const clsTeacherId = cls.teacher?.id || cls.teacher_id || cls.teacher;
+            console.log('  - Extracted teacher ID:', clsTeacherId);
+            console.log('  - Current user ID:', userId);
+            
+            const isTeacherClass = clsTeacherId === userId;
+            console.log('  - Match?', isTeacherClass);
+            
+            return isTeacherClass;
           });
 
-          const normalized = teacherClasses.map((cls: any) => ({
-            ...cls,
-            _id: cls._id?.$oid || cls._id,
-          }));
-
-          setClasses(normalized);
+          console.log('Filtered teacher classes:', teacherClasses);
+          setClasses(teacherClasses);
         }
       } catch (error) {
         console.error('Error fetching classes:', error);
+        alert('Napaka pri nalaganju razredov.');
       } finally {
         setLoading(false);
       }
@@ -90,25 +122,32 @@ const Classes = () => {
     fetchClasses();
   }, [userId, userType]);
 
-  const handleEdit = (id: string) => {
+  const handleEdit = (id: number) => {
     router.push(`/classes/${id}/editClass`);
   };
 
-  const handleDelete = async (id: string) => {
+  const handleDelete = async (id: number) => { 
     if (!confirm('Ste prepričani, da želite izbrisati ta razred?')) return;
 
     try {
-      await fetch(`http://127.0.0.1:5000/api/classes/${id}`, { method: 'DELETE' });
+      const res = await fetch(`http://127.0.0.1:8000/api/classes/${id}`, { method: 'DELETE' });
+      
+      if (!res.ok) {
+        throw new Error('Failed to delete class');
+      }
 
       console.log(`Class ${id} deleted`);
-      setClasses(prev => prev.filter(cls => cls._id !== id));
+      setClasses(prev => prev.filter(cls => cls.id !== id));
+      alert('Razred uspešno izbrisan!');
     } catch (err) {
       console.error('Error deleting class:', err);
+      alert('Napaka pri brisanju razreda.');
     }
   };
 
   const handleLogout = () => {
     localStorage.removeItem('user');
+    localStorage.removeItem('token');
     router.push('/');
   };
 
@@ -157,10 +196,10 @@ const Classes = () => {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 p-8 flex justify-between items-center">
             {classes.map((cls, index) => (
               <div
-                key={typeof cls._id === 'string' ? cls._id : cls._id?.$oid || index}
-                className="card relative group max-w-md"
+                key={cls.id || index}
+                className="card relative group max-w-md cursor-pointer"
                 style={{ backgroundColor: cls.color || '#60A5FA' }}
-                onClick={() => router.push(`/classes/${cls._id}`)}
+                onClick={() => router.push(`/classes/${cls.id}`)}
               >
                 {isTeacher && (
                   <div
@@ -168,14 +207,14 @@ const Classes = () => {
                     onClick={(e) => e.stopPropagation()}
                   >
                     <button
-                      onClick={() => handleEdit(cls._id as string)}
+                      onClick={() => handleEdit(cls.id as number)}
                       className="p-2 rounded-md hover:bg-gray-200 transition text-black"
                       title="Edit Class"
                     >
                       <Pencil size={20} />
                     </button>
                     <button
-                      onClick={() => handleDelete(cls._id as string)}
+                      onClick={() => handleDelete(cls.id as number)}
                       className="p-2 rounded-md hover:bg-red-400 text-black transition"
                       title="Delete Class"
                     >

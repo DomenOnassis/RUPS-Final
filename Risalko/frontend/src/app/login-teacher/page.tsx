@@ -9,30 +9,43 @@ export default function LoginPage() {
 
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  
   async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     console.log("FORM SUBMITTED!");
     e.preventDefault();
 
     try {
-      const res = await fetch("http://127.0.0.1:5000/api/login", {
+      const res = await fetch("http://127.0.0.1:8000/api/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           email,
-          password
+          password,
+          code: null
         }),
       });
 
       const data = await res.json();
 
       if (!res.ok) {
-        setError(data.error || "Pri prijavi je prišlo do napake.");
+        setError(data.detail || "Pri prijavi je prišlo do napake.");
         setSuccess(null);
         return;
       }
 
+      // FIXED: Use localStorage instead of Cookies to match Classes page
       if (data.data) {
+        console.log('User data from login:', data.data);
+        
+        // Store user data in localStorage
         localStorage.setItem('user', JSON.stringify(data.data));
+        
+        console.log('Stored in localStorage:', localStorage.getItem('user'));
+      }
+
+      // Store the access token
+      if (data.access_token) {
+        localStorage.setItem('token', data.access_token);
       }
 
       setSuccess("Uporabnik uspešno prijavljen!");
@@ -40,11 +53,16 @@ export default function LoginPage() {
       setEmail("");
       setPassword("");
 
-      router.push("/classes");
+      // Small delay to ensure localStorage is written
+      setTimeout(() => {
+        router.push("/classes");
+      }, 100);
+      
     } catch (err) {
+      console.error('Login error:', err);
       setError("Napaka pri povezavi s strežnikom.");
     }
-  };
+  }
 
   return (
     <div className="background min-h-screen flex items-center justify-center p-4">
@@ -110,6 +128,13 @@ export default function LoginPage() {
             Prijava
           </button>
         </form>
+
+        <p className="text-center text-gray-200 mt-6 text-sm">
+          Nimaš še računa?{" "}
+          <a href="/register" className="text-yellow-100 hover:underline font-semibold">
+            Registriraj se
+          </a>
+        </p>
       </div>
     </div>
   );
