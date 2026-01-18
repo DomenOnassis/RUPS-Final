@@ -44,34 +44,18 @@ export default function Home() {
             <button
               key={game.name}
               onClick={() => {
-                // Store auth data in game's localStorage via postMessage or URL params
-                const userData = localStorage.getItem("user");
+                // Copy auth to game's localStorage using URL encoding
+                const user = localStorage.getItem("user");
                 const token = localStorage.getItem("token");
                 
-                if (userData && token) {
-                  // Open game in new window and pass auth data
-                  const gameWindow = window.open(game.url, "_blank");
-                  
-                  // Wait for game to load, then send auth data
-                  // Send multiple times to ensure delivery
-                  const sendAuthData = () => {
-                    if (gameWindow && !gameWindow.closed) {
-                      gameWindow.postMessage(
-                        {
-                          type: "AUTH_DATA",
-                          user: userData,
-                          token: token,
-                        },
-                        game.url
-                      );
-                    }
-                  };
-                  
-                  // Send at intervals to ensure game receives it
-                  setTimeout(sendAuthData, 500);
-                  setTimeout(sendAuthData, 1000);
-                  setTimeout(sendAuthData, 2000);
+                if (!user || !token) {
+                  alert("Please login first");
+                  return;
                 }
+                
+                // Use encodeURIComponent for safe URL encoding (handles UTF-8)
+                const authData = encodeURIComponent(JSON.stringify({ user, token }));
+                window.location.href = `${game.url}?auth=${authData}`;
               }}
               className={styles.gameButton}
               style={

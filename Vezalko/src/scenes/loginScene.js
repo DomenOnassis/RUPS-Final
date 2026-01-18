@@ -8,73 +8,56 @@ export default class LoginScene extends Phaser.Scene {
     }
 
     create() {
-        // Check if user is already logged in via AppLauncher
-        const storedUser = localStorage.getItem("user");
-        if (storedUser) {
+        // Check for auth data in URL (from AppLauncher)
+        const params = new URLSearchParams(window.location.search);
+        const authParam = params.get('auth');
+        
+        if (authParam) {
             try {
-                const user = JSON.parse(storedUser);
-                console.log("User already authenticated via AppLauncher:", user);
+                // Decode URI component (handles UTF-8)
+                const { user, token } = JSON.parse(decodeURIComponent(authParam));
+                localStorage.setItem("user", user);
+                localStorage.setItem("token", token);
                 
-                // Store username for game scenes
-                if (user.name) {
-                    localStorage.setItem('username', user.name);
+                const userData = JSON.parse(user);
+                if (userData.name) {
+                    localStorage.setItem('username', userData.name);
                 }
                 
-                // Clear the flag if it exists
-                localStorage.removeItem('auth_just_received');
+                // Remove auth from URL
+                window.history.replaceState({}, '', '/');
                 
-                // Skip login and go directly to menu
+                console.log("Auth received from URL, starting menu...");
                 this.scene.start("MenuScene");
                 return;
             } catch (e) {
-                console.error("Failed to parse user data:", e);
+                console.error("Failed to parse auth:", e);
             }
         }
 
-        // Wait for postMessage from AppLauncher before redirecting
-        console.log("No authentication found, waiting for AppLauncher message...");
+        // Check if already authenticated
+        const user = localStorage.getItem("user");
+        const token = localStorage.getItem("token");
         
-        // Show loading message
-        const { width, height } = this.scale;
-        const loadingText = this.add.text(width / 2, height / 2, 'Loading authentication...', {
-            fontFamily: 'Arial',
-            fontSize: '24px',
-            color: '#333'
-        }).setOrigin(0.5);
-
-        // Check for auth data periodically
-        let checkCount = 0;
-        const maxChecks = 10; // Check for 5 seconds (10 * 500ms)
-        
-        const authCheckInterval = setInterval(() => {
-            checkCount++;
-            const userCheck = localStorage.getItem("user");
-            const authReceived = localStorage.getItem("auth_just_received");
-            
-            if (userCheck || authReceived) {
-                console.log("Auth data detected, starting MenuScene...");
-                clearInterval(authCheckInterval);
+        if (user && token) {
+            try {
+                const userData = JSON.parse(user);
+                console.log("Already authenticated:", userData.name);
                 
-                // Store username if available
-                try {
-                    const user = JSON.parse(userCheck);
-                    if (user.name) {
-                        localStorage.setItem('username', user.name);
-                    }
-                } catch (e) {}
+                if (userData.name) {
+                    localStorage.setItem('username', userData.name);
+                }
                 
-                // Clear flag
-                localStorage.removeItem('auth_just_received');
-                
-                // Go to menu
                 this.scene.start("MenuScene");
-            } else if (checkCount >= maxChecks) {
-                console.log("Timeout waiting for auth data, redirecting to AppLauncher...");
-                clearInterval(authCheckInterval);
-                window.location.href = "http://localhost:3002/login";
-            } else {
-                console.log(`Waiting for auth... (${checkCount}/${maxChecks})`);
+                return;
+            } catch (e) {
+                console.error("Failed to parse user:", e);
+                localStorage.clear();
             }
-        }, 500);
+        }
+
+        // Not authenticated, redirect to AppLauncher
+        console.log("Not authenticated, redirecting to AppLauncher...");
+        window.location.href = "http://localhost:3002/login";
     }
 }
