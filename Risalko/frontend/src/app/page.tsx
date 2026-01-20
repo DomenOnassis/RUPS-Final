@@ -35,40 +35,44 @@ export default function Home() {
   }, []);
 
   return (
-    <div className="background min-h-screen flex flex-col items-center justify-center">
-      <main className="container mx-auto px-4 py-16 flex-1 flex items-center justify-center">
-        <div className="text-center">
-          <div className="text-center mb-8">
-            <h1 className="text-7xl md:text-9xl font-black mb-6 gradient-text text-outline-dark">
-              🎨 Risalko 🌈
+    <div className="risalko-app">
+      <main className="flex-1 flex items-center justify-center px-4">
+        <div className="text-center max-w-2xl">
+          {/* Logo/Brand */}
+          <div className="mb-12">
+            <div className="inline-flex items-center justify-center w-24 h-24 bg-gradient-to-br from-indigo-500 to-indigo-600 rounded-2xl shadow-lg mb-6">
+              <svg className="w-12 h-12 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+              </svg>
+            </div>
+            <h1 className="text-5xl md:text-6xl font-bold text-neutral-800 mb-4">
+              Risalko
             </h1>
-            <p className="text-2xl md:text-3xl text-text max-w-3xl mx-auto leading-relaxed font-bold">
-              Kjer zgodbe oživijo skozi otroško domišljijo in umetnost! ✨
+            <p className="text-xl text-neutral-500 leading-relaxed">
+              Create visual stories and bring narratives to life through illustration
             </p>
           </div>
 
-          <div className="section-dark max-w-3xl mx-auto rounded-3xl p-10">
-            <h3 className="text-3xl font-black gradient-text mb-6">
-              🔄 Preusmeritev...
-            </h3>
-            <p className="text-xl text-gray-200 mb-8 font-bold">
-              Risalko zdaj uporablja centralizirano prijavo.
-            </p>
-            <p className="text-lg text-gray-300 mb-6">
-              Če niste bili avtomatsko preusmerjeni, kliknite spodaj:
-            </p>
-            <a
-              href="http://localhost:3002"
-              className="btn bg-yellow-100 text-text inline-block"
-            >
-              Pojdi na App Launcher
-            </a>
+          {/* Loading Card */}
+          <div className="risalko-card">
+            <div className="flex flex-col items-center py-8">
+              <div className="risalko-spinner mb-6"></div>
+              <h3 className="text-xl font-semibold text-neutral-800 mb-2">
+                Redirecting...
+              </h3>
+              <p className="text-neutral-500 mb-6">
+                Setting up your creative workspace
+              </p>
+              <a href="http://localhost:3002" className="risalko-btn risalko-btn-secondary">
+                Back to App Launcher
+              </a>
+            </div>
           </div>
         </div>
       </main>
 
-      <footer className="text-center py-8 text-text font-bold text-lg">
-        <p>🌈 © 2025 Risalko - Opolnomočimo mlade pripovedovalce in umetnike! 🎨</p>
+      <footer className="text-center py-6 text-neutral-400 text-sm border-t border-neutral-200">
+        <p>Risalko © 2025 — Where stories come to life</p>
       </footer>
     </div>
   );

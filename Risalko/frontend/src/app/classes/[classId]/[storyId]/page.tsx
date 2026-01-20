@@ -87,7 +87,7 @@ export default function StoryPage() {
         const story = storyData.data?.find((s: any) => s.id === parseInt(storyId as string));
 
         if (!story) {
-          setError("Zgodba ni najdena");
+          setError("Story not found");
           setLoading(false);
           return;
         }
@@ -114,7 +114,7 @@ export default function StoryPage() {
         const classData = await classRes.json();
 
         if (!classData.data) {
-          setError("Razred ni najden");
+          setError("Class not found");
           setLoading(false);
           return;
         }
@@ -138,8 +138,8 @@ export default function StoryPage() {
           paragraphAssignments: assignments,
         });
       } catch (err) {
-        console.error("Napaka pri nalaganju podatkov:", err);
-        setError("Napaka pri nalaganju podatkov");
+        console.error("Error loading data:", err);
+        setError("Error loading data");
       } finally {
         setLoading(false);
       }
@@ -215,18 +215,18 @@ export default function StoryPage() {
         };
       });
 
-      console.log('✅ Odlomek uspešno prerazporejen');
+      console.log('✅ Paragraph reassigned successfully');
       
     } catch (err) {
-      console.error("Napaka pri spreminjanju učenca:", err);
-      alert("Napaka pri spreminjanju učenca");
+      console.error("Error updating student:", err);
+      alert("Error updating student");
     } finally {
       setSaving(null);
     }
   };
 
   const handleFinalizeStory = async () => {
-    if (!confirm('Ali ste prepričani, da želite zaključiti to slikanico? Zgodbe se ne bodo mogle spreminjati.')) {
+    if (!confirm('Are you sure you want to complete this story? Changes will not be allowed after.')) {
       return;
     }
 
@@ -241,17 +241,17 @@ export default function StoryPage() {
       );
 
       if (!res.ok) {
-        throw new Error("Napaka pri zaključevanju zgodbe");
+        throw new Error("Error completing story");
       }
 
       const responseData = await res.json();
-      alert(`✅ Slikanica uspešno zaključena! Skupaj ${responseData.data.images_count} slik.`);
+      alert(`✅ Story completed successfully! Total ${responseData.data.images_count} images.`);
       
       // Redirect back to classes
       router.push(`/classes/${classId}`);
     } catch (err) {
-      console.error("Napaka pri zaključevanju zgodbe:", err);
-      alert("Napaka pri zaključevanju zgodbe");
+      console.error("Error completing story:", err);
+      alert("Error completing story");
     } finally {
       setIsFinalizingStory(false);
     }
@@ -259,23 +259,23 @@ export default function StoryPage() {
 
   if (loading) {
     return (
-      <div className="background min-h-screen">
-        <p className="text-text text-center pt-8">Nalaganje zgodbe...</p>
+      <div className="risalko-app">
+        <div className="risalko-loading">
+          <div className="risalko-spinner"></div>
+          <p>Loading story...</p>
+        </div>
       </div>
     );
   }
 
   if (error || !data.story) {
     return (
-      <div className="background min-h-screen">
+      <div className="risalko-app">
         <div className="flex items-center justify-center min-h-screen">
-          <div className="text-center">
-            <p className="text-lg font-semibold text-red-300 mb-4">{error || "Zgodba ni najdena"}</p>
-            <button
-              onClick={() => router.back()}
-              className="text-gray-300 hover:text-gray-100 transition-colors text-2xl"
-            >
-              ←
+          <div className="risalko-card text-center">
+            <p className="text-lg font-semibold text-red-600 mb-4">{error || "Story not found"}</p>
+            <button onClick={() => router.back()} className="risalko-btn risalko-btn-secondary">
+              ← Go Back
             </button>
           </div>
         </div>
@@ -287,158 +287,153 @@ export default function StoryPage() {
   const isStudent = userType === "student";
 
   return (
-    <div className="background min-h-screen pb-8">
-      <div className="mx-auto">
-        {/* Header */}
-        <div className="flex justify-between items-center mb-8 bg-gray-700/90 p-8">
-          <div>
-            <div className="flex items-center gap-3 mb-2">
-              <button
-                onClick={() => router.back()}
-                className="text-yellow-100 hover:text-yellow-200 transition-colors text-lg font-semibold"
-              >
-                ←
-              </button>
-              <h1 className="text-3xl font-bold text-gray-200">{data.story.title}</h1>
-            </div>
-            <div className="flex items-center gap-4">
-              <p className="text-gray-300 font-semibold text-lg">
-                ✍️ {data.story.author}
-              </p>
-              {data.story.short_description && (
-                <p className="text-gray-400 italic text-sm">
-                  "{data.story.short_description}"
-                </p>
-              )}
+    <div className="risalko-app">
+      <header className="risalko-header">
+        <div className="risalko-header-content">
+          <div className="flex items-center gap-4">
+            <button onClick={() => router.back()} className="risalko-back-btn">
+              ← Back
+            </button>
+            <div>
+              <h1 className="risalko-header-title">{data.story.title}</h1>
+              <div className="flex items-center gap-4 mt-1">
+                <p className="text-sm text-neutral-500">✍️ {data.story.author}</p>
+                {data.story.short_description && (
+                  <p className="text-neutral-400 italic text-sm">"{data.story.short_description}"</p>
+                )}
+              </div>
             </div>
           </div>
           
-          {/* Finalize Story Button for Teachers */}
           {isTeacher && (
             <button
               onClick={handleFinalizeStory}
               disabled={isFinalizingStory}
-              className="btn bg-green-400 text-text disabled:bg-gray-500 disabled:text-gray-700"
+              className="risalko-btn risalko-btn-primary"
             >
-              {isFinalizingStory ? 'Zaključujem...' : '✓ Končaj slikanico'}
+              {isFinalizingStory ? 'Completing...' : '✓ Complete Story'}
             </button>
           )}
         </div>
+      </header>
 
-        <div className="flex justify-center items-center">
-          {/* For Teachers - Show All Paragraphs with Assignment UI */}
-          {isTeacher && (
-            <div className="w-6xl">
-              <h2 className="text-2xl font-semibold text-gray-800 mb-6">Odlomki in učenci</h2>
-              
-              {data.paragraphs.length === 0 ? (
-                <p className="text-text-muted text-center py-8">Ni odlomkov za to zgodbo.</p>
-              ) : (
-                <div className="space-y-6">
-                  {data.paragraphs.map((paragraph) => {
-                    const assignedStudentId = data.paragraphAssignments.get(paragraph.id);
-                    const assignedStudent = data.students.find(s => s.id === assignedStudentId);
+      <main className="risalko-content">
+        {/* For Teachers - Show All Paragraphs with Assignment UI */}
+        {isTeacher && (
+          <div className="max-w-4xl mx-auto">
+            <h2 className="text-xl font-semibold text-neutral-800 mb-6">Paragraphs & Assignments</h2>
+            
+            {data.paragraphs.length === 0 ? (
+              <div className="risalko-empty">
+                <p>No paragraphs for this story.</p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {data.paragraphs.map((paragraph) => {
+                  const assignedStudentId = data.paragraphAssignments.get(paragraph.id);
+                  const assignedStudent = data.students.find(s => s.id === assignedStudentId);
 
-                    return (
-                      <div
-                        key={paragraph.id}
-                        className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl shadow p-5"
-                      >
-                        <div className="flex items-start gap-3 mb-3">
-                          <span className="inline-block bg-purple-600 text-white text-sm font-bold px-3 py-1 rounded flex-shrink-0">
-                            #{paragraph.order}
-                          </span>
-                        </div>
-                        
-                        <p className="text-gray-800 dark:text-gray-100 text-lg leading-relaxed mb-4">
-                          {paragraph.content}
-                        </p>
-
-                        <div className="flex items-center justify-between">
-                          <span className="text-sm text-gray-600 dark:text-gray-400">
-                            📘 Učenec:{" "}
-                            <strong>
-                              {assignedStudent 
-                                ? `${assignedStudent.name} ${assignedStudent.surname}`
-                                : "Ni dodeljen"}
-                            </strong>
-                          </span>
-
-                          <select
-                            value={assignedStudentId || ''}
-                            onChange={(e) => handleStudentChange(paragraph.id, e.target.value)}
-                            disabled={saving === paragraph.id}
-                            className="ml-4 px-3 py-1 border border-gray-300 dark:border-gray-700 rounded-md bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-100 focus:ring-2 focus:ring-purple-500 focus:outline-none disabled:opacity-50"
-                          >
-                            <option value="">-- Izberi učenca --</option>
-                            {data.students.map((student) => (
-                              <option key={student.id} value={student.id}>
-                                {student.name} {student.surname}
-                              </option>
-                            ))}
-                          </select>
-                        </div>
-
-                        {paragraph.drawing && (
-                          <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
-                            <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">
-                              🎨 Risba učenca:
-                            </p>
-                            <img 
-                              src={paragraph.drawing} 
-                              alt="Student drawing" 
-                              className="max-w-full h-auto rounded-lg border border-gray-300 dark:border-gray-600"
-                            />
-                          </div>
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* For Students - Show Only Their Paragraphs in Card Layout */}
-          {isStudent && (
-            <div>
-              <h2 className="text-2xl font-semibold text-gray-800 mb-6">Tvoj odlomek</h2>
-              
-              {data.paragraphs.length === 0 ? (
-                <p className="text-text-muted text-center py-8">Nemaš dodeljenega odlomka za to zgodbo.</p>
-              ) : (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {data.paragraphs.map((paragraph) => (
-                    <Link
-                      key={paragraph.id}
-                      href={`/classes/${classId}/${storyId}/${paragraph.id}`}
-                      className="card bg-sky-400 cursor-pointer"
-                    >
-                      <div className="flex items-center justify-between mb-3">
-                        <span className="inline-block bg-sky-600 text-white text-xs font-bold px-2 py-1 rounded">
-                          Odlomek #{paragraph.order}
+                  return (
+                    <div key={paragraph.id} className="risalko-card">
+                      <div className="flex items-start gap-3 mb-3">
+                        <span className="inline-block bg-indigo-600 text-white text-sm font-bold px-3 py-1 rounded-lg">
+                          #{paragraph.order}
                         </span>
                       </div>
                       
-                      <p className="text-text line-clamp-4 leading-relaxed mb-4">
+                      <p className="text-neutral-700 text-base leading-relaxed mb-4">
                         {paragraph.content}
                       </p>
 
-                      <div className="pt-4 border-t border-text/20">
-                        {paragraph.drawing ? (
-                          <p className="text-xs text-text-muted">🎨 Tvoja risba je že narejena</p>
-                        ) : (
-                          <p className="text-xs text-text-muted">✏️ Pripravljeni na risanje?</p>
-                        )}
+                      <div className="flex items-center justify-between pt-4 border-t border-neutral-100">
+                        <span className="text-sm text-neutral-500">
+                          Assigned to:{" "}
+                          <strong className="text-neutral-700">
+                            {assignedStudent 
+                              ? `${assignedStudent.name} ${assignedStudent.surname}`
+                              : "Unassigned"}
+                          </strong>
+                        </span>
+
+                        <select
+                          value={assignedStudentId || ''}
+                          onChange={(e) => handleStudentChange(paragraph.id, e.target.value)}
+                          disabled={saving === paragraph.id}
+                          className="risalko-input w-auto"
+                        >
+                          <option value="">-- Select student --</option>
+                          {data.students.map((student) => (
+                            <option key={student.id} value={student.id}>
+                              {student.name} {student.surname}
+                            </option>
+                          ))}
+                        </select>
                       </div>
-                    </Link>
-                  ))}
-                </div>
-              )}
-            </div>
-          )}
-        </div>
-      </div>
+
+                      {paragraph.drawing && (
+                        <div className="mt-4 pt-4 border-t border-neutral-100">
+                          <p className="text-sm text-neutral-500 mb-2">🎨 Student's illustration:</p>
+                          <img 
+                            src={paragraph.drawing} 
+                            alt="Student drawing" 
+                            className="max-w-full h-auto rounded-lg border border-neutral-200"
+                          />
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* For Students - Show Only Their Paragraphs */}
+        {isStudent && (
+          <div>
+            <h2 className="text-xl font-semibold text-neutral-800 mb-6">Your Assignments</h2>
+            
+            {data.paragraphs.length === 0 ? (
+              <div className="risalko-empty">
+                <p>You have no assignments for this story.</p>
+              </div>
+            ) : (
+              <div className="risalko-grid">
+                {data.paragraphs.map((paragraph) => (
+                  <Link
+                    key={paragraph.id}
+                    href={`/classes/${classId}/${storyId}/${paragraph.id}`}
+                    className="risalko-card-interactive"
+                  >
+                    <div className="flex items-center justify-between mb-3">
+                      <span className="inline-block bg-indigo-100 text-indigo-700 text-xs font-bold px-2 py-1 rounded-lg">
+                        Paragraph #{paragraph.order}
+                      </span>
+                      {paragraph.drawing ? (
+                        <span className="text-xs text-emerald-600">✓ Complete</span>
+                      ) : (
+                        <span className="text-xs text-amber-600">Pending</span>
+                      )}
+                    </div>
+                    
+                    <p className="text-neutral-600 line-clamp-4 leading-relaxed mb-4">
+                      {paragraph.content}
+                    </p>
+
+                    <div className="pt-4 border-t border-neutral-100">
+                      {paragraph.drawing ? (
+                        <p className="text-xs text-neutral-500">🎨 Your illustration is complete</p>
+                      ) : (
+                        <p className="text-xs text-indigo-600 font-medium">✏️ Ready to illustrate?</p>
+                      )}
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+      </main>
     </div>
   );
 }

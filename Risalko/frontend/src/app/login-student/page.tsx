@@ -24,7 +24,7 @@ export default function LoginPage() {
       const data = await res.json();
 
       if (!res.ok) {
-        setError(data.error || "Napaka pri prijavi študenta.");
+        setError(data.error || "Student login error.");
         setSuccess(null);
         return;
       }
@@ -33,70 +33,58 @@ export default function LoginPage() {
         localStorage.setItem('user', JSON.stringify(data.data));
       }
 
-      setSuccess("Uspešno prijavljen!");
+      setSuccess("Successfully logged in!");
       setError(null);
       setKey("");
 
       router.push("/classes");
     } catch (err) {
-      setError("Napaka pri povezavi s strežnikom.");
+      setError("Connection error.");
     }
   }
 
   return (
-    <div className="background min-h-screen flex items-center justify-center p-4">
-      <div className="section-dark max-w-md w-full">
-        <div className="mb-6">
-          <button
-            onClick={() => router.back()}
-            className="text-yellow-100 hover:text-yellow-200 transition-colors font-medium text-2xl"
-          >
-            ←
+    <div className="risalko-app">
+      <header className="risalko-header">
+        <div className="risalko-header-content">
+          <button onClick={() => router.back()} className="risalko-back-btn">
+            ← Back
           </button>
+          <h1 className="risalko-header-title">Student Login</h1>
         </div>
-        <h1 className="text-3xl font-bold text-center mb-6 gradient-text">
-          Prijavi se kot učenec
-        </h1>
+      </header>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
-          {error && (
-            <div className="bg-red-100 text-red-700 p-3 rounded-lg text-sm text-center">
-              {error}
-            </div>
-          )}
-          {success && (
-            <div className="bg-green-100 text-green-700 p-3 rounded-lg text-sm text-center">
-              {success}
-            </div>
-          )}
-
-          <div>
-            <label
-              htmlFor="key"
-              className="block text-sm font-medium text-gray-200 mb-2"
-            >
-              Ključ
-            </label>
-            <input
-              id="key"
-              name="key"
-              type="text"
-              placeholder="vnesi ključ"
-              value={key}
-              onChange={(e) => setKey(e.target.value)}
-              className="input-text"
-              required
-            />
+      <main className="risalko-content-narrow">
+        <div className="risalko-card">
+          <div className="risalko-card-header">
+            <h2 className="risalko-card-title">Welcome!</h2>
+            <p className="risalko-card-subtitle">Enter your access code to continue</p>
           </div>
 
-          <button
-            type="submit"
-            className="btn bg-yellow-100 text-text w-full"
-          >
-            Prijava
-          </button>
-        </form>
-      </div>
+          {error && <div className="risalko-alert-error">{error}</div>}
+          {success && <div className="risalko-alert-success">{success}</div>}
+
+          <form onSubmit={handleSubmit} className="risalko-form-section">
+            <div>
+              <label htmlFor="key" className="risalko-label">Access Code</label>
+              <input
+                id="key"
+                name="key"
+                type="text"
+                placeholder="Enter your code"
+                value={key}
+                onChange={(e) => setKey(e.target.value)}
+                className="risalko-input"
+                required
+              />
+            </div>
+
+            <button type="submit" className="risalko-btn risalko-btn-primary w-full">
+              Continue
+            </button>
+          </form>
+        </div>
+      </main>
     </div>
   );
 }

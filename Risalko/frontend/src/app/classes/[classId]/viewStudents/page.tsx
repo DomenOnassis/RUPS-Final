@@ -43,14 +43,14 @@ const ViewStudents = () => {
                 const data = await res.json();
 
                 if (res.ok && data.data) {
-                    setClassName(data.data.class_name || "Razred");
+                    setClassName(data.data.class_name || "Class");
                     setStudents(data.data.students || []);
                 } else {
-                    setError("Napaka pri pridobivanju učencev.");
+                    setError("Error loading students.");
                 }
             } catch (err) {
                 console.error("Error fetching students:", err);
-                setError("Napaka pri povezavi s strežnikom.");
+                setError("Connection error.");
             } finally {
                 setLoading(false);
             }
@@ -60,7 +60,7 @@ const ViewStudents = () => {
     }, [classId]);
 
     const handleDelete = async (studentId: string) => {
-        if (!confirm("Ali ste prepričani, da želite odstraniti učenca iz razreda?")) return;
+        if (!confirm("Are you sure you want to remove this student from the class?")) return;
 
         try {
             const res = await fetch(`http://127.0.0.1:8000/api/classes/${classId}/students/${studentId}`, {
@@ -69,98 +69,107 @@ const ViewStudents = () => {
 
             if (!res.ok) throw new Error(`Failed: ${res.statusText}`);
 
-            // Update state locally
             setStudents(prev => prev.filter(s => s._id?.$oid !== studentId && s._id !== studentId));
-            alert("Učenec odstranjen iz razreda.");
+            alert("Student removed from class.");
         } catch (err) {
             console.error("Error removing student:", err);
-            alert("Napaka pri odstranjevanju učenca.");
+            alert("Error removing student.");
         }
     };
 
 
     if (loading) {
         return (
-            <div className="background text-center py-20">
-                <p className="text-text text-lg">Nalaganje učencev...</p>
+            <div className="risalko-app">
+                <div className="risalko-loading">
+                    <div className="risalko-spinner"></div>
+                    <p>Loading students...</p>
+                </div>
             </div>
         );
     }
 
     if (error) {
         return (
-            <div className="background text-center py-20">
-                <p className="text-red-500 font-semibold">{error}</p>
+            <div className="risalko-app">
+                <div className="risalko-content-narrow">
+                    <div className="risalko-alert-error">{error}</div>
+                </div>
             </div>
         );
     }
+    
     const isTeacher = userType === "teacher";
+    
     return (
-        <div className="background min-h-screen pb-8">
-            {/* Header */}
-            <div className="flex justify-between items-center mb-8 bg-gray-700/90 p-8">
-                <div className="flex items-center gap-3">
-                    <button
-                        onClick={() => router.back()}
-                        className="text-gray-300 hover:text-gray-100 transition-colors text-2xl font-semibold"
-                    >
-                        ←
+        <div className="risalko-app">
+            <header className="risalko-header">
+                <div className="risalko-header-content">
+                    <button onClick={() => router.back()} className="risalko-back-btn">
+                        ← Back
                     </button>
-                    <h1 className="text-3xl font-bold text-gray-200">
-                        Učenci v razredu: {className}
+                    <h1 className="risalko-header-title">
+                        Students — {className}
                     </h1>
                 </div>
-            </div>
+            </header>
 
-            <div className="max-w-4xl mx-auto px-8">
+            <main className="risalko-content">
                 {students.length === 0 ? (
-                    <p className="text-gray-500 text-center py-10">
-                        Trenutno ni učencev v tem razredu.
-                    </p>
+                    <div className="risalko-empty">
+                        <p>No students in this class yet.</p>
+                    </div>
                 ) : (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                    <div className="risalko-grid">
                         {students.map((student, idx) => (
                             <div
                                 key={student._id?.$oid || student._id || idx}
-                                className="section-gray relative group"
+                                className="risalko-card relative group"
                             >
                                 {isTeacher && (
                                     <div
-                                        className="absolute bottom-2 right-3 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity"
+                                        className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity"
                                         onClick={(e) => e.stopPropagation()}
                                     >
                                         <button
                                             onClick={() => handleDelete(student._id?.$oid)}
-                                            className="p-2 rounded-md hover:bg-red-400 text-black transition"
-                                            title="Delete Class"
+                                            className="p-2 rounded-lg hover:bg-red-100 text-red-600 transition"
+                                            title="Remove Student"
                                         >
-                                            <Trash2 size={20} />
+                                            <Trash2 size={18} />
                                         </button>
                                     </div>
                                 )}
-                                <h2 className="text-xl font-semibold text-gray-800 dark:text-gray-200 mb-2">
-                                    {student.name || student.username || "Neznano ime"}
-                                </h2>
+                                <div className="flex items-center gap-3 mb-3">
+                                    <div className="w-10 h-10 bg-indigo-100 rounded-full flex items-center justify-center">
+                                        <span className="text-indigo-600 font-semibold">
+                                            {(student.name || student.username || "?")[0].toUpperCase()}
+                                        </span>
+                                    </div>
+                                    <h2 className="text-lg font-semibold text-neutral-800">
+                                        {student.name || student.username || "Unknown name"}
+                                    </h2>
+                                </div>
                                 {student.email && (
-                                    <p className="text-gray-600 dark:text-gray-400 text-sm mb-2">
+                                    <p className="text-neutral-500 text-sm mb-1">
                                         ✉️ {student.email}
                                     </p>
                                 )}
                                 {student.code && (
-                                    <p className="text-gray-600 dark:text-gray-400 text-sm mb-2">
-                                        Koda: {student.code}
+                                    <p className="text-neutral-500 text-sm mb-1">
+                                        Code: <span className="font-mono bg-neutral-100 px-2 py-0.5 rounded">{student.code}</span>
                                     </p>
                                 )}
                                 {student.paragraphs && (
-                                    <p className="text-gray-500 dark:text-gray-400 text-sm">
-                                        Naloge: {student.paragraphs.length}
+                                    <p className="text-neutral-400 text-sm mt-3 pt-3 border-t border-neutral-100">
+                                        📝 {student.paragraphs.length} assignments
                                     </p>
                                 )}
                             </div>
                         ))}
                     </div>
                 )}
-            </div>
+            </main>
         </div>
     );
 };

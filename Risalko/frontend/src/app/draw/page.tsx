@@ -12,12 +12,13 @@ export default function DrawPage() {
   
   return (
     <div className="background h-screen flex flex-col">
-      <div className="px-4 py-3 flex-shrink-0 bg-gray-700/90 border-b-4 border-dashed border-yellow-400">
+      <div className="px-6 py-4 flex-shrink-0 bg-white border-b border-slate-200 flex items-center justify-between">
+        <h2 className="text-lg font-semibold text-slate-900">Canvas</h2>
         <Link 
           href="/"
-          className="inline-flex items-center text-yellow-100 hover:text-yellow-200 transition-colors font-black text-lg transform hover:scale-110"
+          className="inline-flex items-center text-slate-600 hover:text-slate-900 transition-colors font-medium text-sm"
         >
-          ←
+          ← Back
         </Link>
       </div>
 

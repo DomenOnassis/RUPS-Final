@@ -28,7 +28,7 @@ export default function LoginPage() {
       const data = await res.json();
 
       if (!res.ok) {
-        setError(data.detail || "Pri prijavi je prišlo do napake.");
+        setError(data.detail || "Login failed.");
         setSuccess(null);
         return;
       }
@@ -48,7 +48,7 @@ export default function LoginPage() {
         localStorage.setItem('token', data.access_token);
       }
 
-      setSuccess("Uporabnik uspešno prijavljen!");
+      setSuccess("User logged in successfully!");
       setError(null);
       setEmail("");
       setPassword("");
@@ -60,82 +60,71 @@ export default function LoginPage() {
       
     } catch (err) {
       console.error('Login error:', err);
-      setError("Napaka pri povezavi s strežnikom.");
+      setError("Connection error.");
     }
   }
 
   return (
-    <div className="background min-h-screen flex items-center justify-center p-4">
-      <div className="section-dark max-w-md w-full">
-        <div className="mb-6">
-          <button
-            onClick={() => router.back()}
-            className="text-yellow-100 hover:text-yellow-200 transition-colors font-medium text-2xl"
-          >
-            ←
+    <div className="risalko-app">
+      <header className="risalko-header">
+        <div className="risalko-header-content">
+          <button onClick={() => router.back()} className="risalko-back-btn">
+            ← Back
           </button>
+          <h1 className="risalko-header-title">Teacher Login</h1>
         </div>
-        <h1 className="text-3xl font-bold text-center mb-6 gradient-text">
-          Prijavi se kot učitelj
-        </h1>
+      </header>
 
-        {error && (
-          <div className="bg-red-100 text-red-700 p-3 rounded-lg text-sm text-center mb-4">
-            {error}
-          </div>
-        )}
-        {success && (
-          <div className="bg-green-100 text-green-700 p-3 rounded-lg text-sm text-center mb-4">
-            {success}
-          </div>
-        )}
-
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div>
-            <label htmlFor="email" className="block text-sm font-medium text-gray-200 mb-2">
-              E-pošta
-            </label>
-            <input
-              id="email"
-              type="email"
-              placeholder="vnesi e-poštni naslov"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="input-text"
-              required
-            />
+      <main className="risalko-content-narrow">
+        <div className="risalko-card">
+          <div className="risalko-card-header">
+            <h2 className="risalko-card-title">Welcome Back</h2>
+            <p className="risalko-card-subtitle">Sign in to manage your classes and stories</p>
           </div>
 
-          <div>
-            <label htmlFor="password" className="block text-sm font-medium text-gray-200 mb-2">
-              Geslo
-            </label>
-            <input
-              id="password"
-              type="password"
-              placeholder="vnesi geslo"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="input-text"
-              required
-            />
-          </div>
+          {error && <div className="risalko-alert-error">{error}</div>}
+          {success && <div className="risalko-alert-success">{success}</div>}
 
-          <button
-            type="submit"
-            className="btn bg-yellow-100 text-text w-full"
-          >
-            Prijava
-          </button>
-        </form>
+          <form onSubmit={handleSubmit} className="risalko-form-section">
+            <div>
+              <label htmlFor="email" className="risalko-label">Email</label>
+              <input
+                id="email"
+                type="email"
+                placeholder="Enter your email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="risalko-input"
+                required
+              />
+            </div>
 
-        <p className="text-center text-gray-200 mt-6 text-sm">
-          Nimaš še računa?{" "}
-          <a href="/register" className="text-yellow-100 hover:underline font-semibold">
-            Registriraj se
-          </a>
-        </p>
-      </div>
+            <div>
+              <label htmlFor="password" className="risalko-label">Password</label>
+              <input
+                id="password"
+                type="password"
+                placeholder="Enter your password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="risalko-input"
+                required
+              />
+            </div>
+
+            <button type="submit" className="risalko-btn risalko-btn-primary w-full">
+              Sign In
+            </button>
+          </form>
+
+          <p className="text-center text-neutral-500 mt-6 text-sm">
+            Don't have an account?{" "}
+            <a href="/register" className="text-indigo-600 hover:text-indigo-700 font-semibold">
+              Create account
+            </a>
+          </p>
+        </div>
+      </main>
     </div>
   );
 }

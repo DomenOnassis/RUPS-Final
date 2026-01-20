@@ -1,7 +1,6 @@
 "use client";
 
 import { games } from "@/config/games";
-import styles from "./page.module.css";
 import { useAuth } from "@/hooks/useAuth";
 
 export default function Home() {
@@ -9,9 +8,12 @@ export default function Home() {
 
   if (isLoading) {
     return (
-      <main className={styles.container}>
-        <div className={styles.card}>
-          <p>Loading...</p>
+      <main className="risalko-centered">
+        <div className="risalko-card risalko-content-medium">
+          <div className="risalko-loading">
+            <div className="risalko-spinner"></div>
+            <p>Loading...</p>
+          </div>
         </div>
       </main>
     );
@@ -22,24 +24,24 @@ export default function Home() {
   }
 
   return (
-    <main className={styles.container}>
-      <div className={styles.card}>
-        <div className={styles.header}>
-          <div className={styles.userInfo}>
-            <h2>Welcome, {user.name}!</h2>
-            <p className={styles.userType}>
+    <main className="risalko-centered">
+      <div className="risalko-card risalko-content-medium">
+        <div className="risalko-card-header">
+          <div className="risalko-user-info">
+            <h2 className="risalko-user-name">Welcome, {user.name}!</h2>
+            <p className="risalko-user-type">
               {user.type === "teacher" ? "Teacher Account" : "Student Account"}
             </p>
           </div>
-          <button onClick={logout} className={styles.logoutButton}>
+          <button onClick={logout} className="risalko-btn-secondary">
             Logout
           </button>
         </div>
 
-        <h1>Choose Your Game</h1>
-        <p>Select which game you want to play</p>
+        <h1 className="risalko-card-title">Welcome to the Mi4 ecosystem</h1>
+        <p className="risalko-card-subtitle">Select the software service to use</p>
 
-        <div className={styles.buttonContainer}>
+        <div className="risalko-games-grid">
           {games.map((game) => (
             <button
               key={game.name}
@@ -57,15 +59,15 @@ export default function Home() {
                 const authData = encodeURIComponent(JSON.stringify({ user, token }));
                 window.location.href = `${game.url}?auth=${authData}`;
               }}
-              className={styles.gameButton}
+              className="risalko-game-btn"
               style={
                 {
-                  "--button-color": game.color,
+                  "--game-color": game.color,
                 } as React.CSSProperties
               }
             >
-              <div className={styles.gameTitle}>{game.title}</div>
-              <div className={styles.gameDescription}>{game.description}</div>
+              <div className="risalko-game-title">{game.title}</div>
+              <div className="risalko-game-description">{game.description}</div>
             </button>
           ))}
         </div>

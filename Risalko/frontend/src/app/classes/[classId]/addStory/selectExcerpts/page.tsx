@@ -113,40 +113,38 @@ const SelectExcerptsPage = () => {
 
   if (!storyData) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <p>Nalaganje...</p>
+      <div className="risalko-app">
+        <div className="risalko-loading">
+          <div className="risalko-spinner"></div>
+          <p>Loading...</p>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="background min-h-screen p-6">
-      <div className="max-w-7xl mx-auto">
-        <div className="mb-6">
-          <button
-            onClick={() => router.back()}
-            className="text-text font-black text-xl transform hover:scale-110"
-          >
-            ←
+    <div className="risalko-app">
+      <header className="risalko-header">
+        <div className="risalko-header-content">
+          <button onClick={() => router.back()} className="risalko-back-btn">
+            ← Back
           </button>
+          <h1 className="risalko-header-title">Select Story Paragraphs</h1>
         </div>
+      </header>
 
-        <h1 className="text-7xl font-black text-center mb-8 gradient-text animate-bounce-slow text-outline-dark">
-          📚 Izberi odlomke zgodbe! ✨
-        </h1>
-
+      <main className="risalko-content">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          <div className="section-dark rounded-3xl p-8 border-4 border-dashed border-pink-300">
-            <h2 className="text-3xl font-black mb-4 text-gray-100 animate-wiggle">
-              📖 Vsebina zgodbe
-            </h2>
-            <p className="text-lg text-gray-200 mb-4 font-bold">
-              ✏️ Izberi besedilo in pritisni gumb za dodajanje odlomka!
+          {/* Story Content */}
+          <div className="risalko-card">
+            <h2 className="text-lg font-semibold text-neutral-800 mb-2">Story Content</h2>
+            <p className="text-sm text-neutral-500 mb-4">
+              Select text and click the button to add paragraphs
             </p>
             
             <div
               id="story-content"
-              className="bg-gray-900/50 p-6 rounded-2xl border-4 border-gray-500 max-h-[60vh] overflow-y-auto whitespace-pre-wrap text-gray-100 select-text cursor-text font-semibold text-lg shadow-inner no-scrollbar"
+              className="bg-neutral-50 p-4 rounded-xl border border-neutral-200 max-h-[50vh] overflow-y-auto whitespace-pre-wrap text-neutral-700 select-text cursor-text leading-relaxed"
               onMouseUp={handleTextSelection}
               onTouchEnd={handleTextSelection}
             >
@@ -154,27 +152,23 @@ const SelectExcerptsPage = () => {
             </div>
 
             {selectedText && (
-              <div className="mt-6 p-6 bg-sky-500/20 border-4 border-sky-400 rounded-3xl shadow-xl">
-                <p className="text-lg font-black text-sky-100 mb-3">
-                  ⭐ Izbrano besedilo:
+              <div className="mt-4 p-4 bg-indigo-50 border border-indigo-200 rounded-xl">
+                <p className="text-sm font-medium text-indigo-700 mb-2">Selected text:</p>
+                <p className="text-sm text-neutral-600 italic mb-3">
+                  "{selectedText.substring(0, 150)}{selectedText.length > 150 ? '...' : ''}"
                 </p>
-                <p className="text-base text-gray-100 italic mb-4 font-semibold">
-                  "{selectedText.substring(0, 100)}{selectedText.length > 100 ? '...' : ''}"
-                </p>
-                <button
-                  onClick={addExcerpt}
-                  className="btn bg-yellow-100 text-text w-full"
-                >
-                  ➕ Dodaj odlomek! 🎉
+                <button onClick={addExcerpt} className="risalko-btn risalko-btn-primary w-full">
+                  + Add as Paragraph
                 </button>
               </div>
             )}
           </div>
 
-          <div className="section-dark rounded-3xl p-8 border-4 border-dashed border-yellow-200">
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-3xl font-black text-gray-100 animate-wiggle">
-                🎯 Izbrani odlomki ({excerpts.length})
+          {/* Selected Excerpts */}
+          <div className="risalko-card">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-semibold text-neutral-800">
+                Selected Paragraphs ({excerpts.length})
               </h2>
               {excerpts.length > 0 && (
                 <button
@@ -182,57 +176,57 @@ const SelectExcerptsPage = () => {
                     setExcerpts([]);
                     setRemainingContent(storyData.content);
                   }}
-                  className="text-base text-red-300 hover:text-red-100 font-black transform hover:scale-110 bg-red-600/30 px-4 py-2 rounded-full"
+                  className="text-sm text-red-600 hover:text-red-700 font-medium"
                 >
-                  🗑️ Počisti vse
+                  Clear all
                 </button>
               )}
             </div>
 
-            <div className="space-y-4 max-h-[60vh] overflow-y-auto p-4 no-scrollbar">
+            <div className="space-y-3 max-h-[50vh] overflow-y-auto">
               {excerpts.length === 0 ? (
-                <div className="text-center py-16 text-gray-300">
-                  <p className="text-7xl mb-4 animate-bounce-slow">📝</p>
-                  <p className="text-2xl font-black mb-2">Še nisi izbral nobenega odlomka!</p>
-                  <p className="text-lg mt-4 font-bold">👈 Izberi besedilo na levi strani</p>
+                <div className="risalko-empty py-12">
+                  <p className="text-4xl mb-4">📝</p>
+                  <p className="font-medium">No paragraphs selected yet</p>
+                  <p className="text-sm mt-2">Select text from the story content</p>
                 </div>
               ) : (
                 excerpts.map((excerpt, index) => (
                   <div
                     key={excerpt.id}
-                    className="bg-sky-500/20 p-6 rounded-3xl border-4 border-sky-400 shadow-xl transform hover:scale-105 transition-all"
+                    className="p-4 bg-neutral-50 rounded-xl border border-neutral-200"
                   >
-                    <div className="flex items-start justify-between mb-3">
-                      <span className="text-text-light text-lg font-black">
+                    <div className="flex items-start justify-between mb-2">
+                      <span className="text-sm font-bold text-indigo-600">
                         #{excerpt.order}
                       </span>
-                      <div className="flex gap-3">
+                      <div className="flex gap-2">
                         <button
                           onClick={() => moveExcerptUp(index)}
                           disabled={index === 0}
-                          className="text-3xl hover:scale-125 transition-transform disabled:opacity-30 disabled:cursor-not-allowed"
-                          title="Premakni gor"
+                          className="p-1 text-neutral-400 hover:text-neutral-600 disabled:opacity-30"
+                          title="Move up"
                         >
-                          ⬆️
+                          ↑
                         </button>
                         <button
                           onClick={() => moveExcerptDown(index)}
                           disabled={index === excerpts.length - 1}
-                          className="text-3xl hover:scale-125 transition-transform disabled:opacity-30 disabled:cursor-not-allowed"
-                          title="Premakni dol"
+                          className="p-1 text-neutral-400 hover:text-neutral-600 disabled:opacity-30"
+                          title="Move down"
                         >
-                          ⬇️
+                          ↓
                         </button>
                         <button
                           onClick={() => removeExcerpt(excerpt.id)}
-                          className="text-3xl hover:scale-125 transition-transform"
-                          title="Odstrani"
+                          className="p-1 text-red-400 hover:text-red-600"
+                          title="Remove"
                         >
-                          ❌
+                          ×
                         </button>
                       </div>
                     </div>
-                    <p className="text-base text-gray-100 line-clamp-4 font-semibold">
+                    <p className="text-sm text-neutral-600 line-clamp-3">
                       {excerpt.text}
                     </p>
                   </div>
@@ -241,18 +235,15 @@ const SelectExcerptsPage = () => {
             </div>
 
             {excerpts.length > 0 && (
-              <div className="mt-8 pt-8 border-t-4 border-dashed border-yellow-200">
-                <button
-                  onClick={handleContinue}
-                  className="btn bg-yellow-100 text-text w-full text-lg"
-                >
-                  ➡️ Nadaljuj na dodelitev učencem! 🚀
+              <div className="mt-6 pt-6 border-t border-neutral-200">
+                <button onClick={handleContinue} className="risalko-btn risalko-btn-primary w-full">
+                  Continue to Assign Students →
                 </button>
               </div>
             )}
           </div>
         </div>
-      </div>
+      </main>
     </div>
   );
 };

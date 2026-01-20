@@ -40,11 +40,11 @@ export default function ParagraphDrawPage() {
         if (data.data) {
           setParagraph(data.data);
         } else {
-          setError("Odlomek ni najden");
+          setError("Paragraph not found");
         }
       } catch (err) {
-        console.error("Napaka pri nalaganju odlomka:", err);
-        setError("Napaka pri nalaganju odlomka");
+        console.error("Error loading paragraph:", err);
+        setError("Error loading paragraph");
       } finally {
         setLoading(false);
       }
@@ -57,7 +57,7 @@ export default function ParagraphDrawPage() {
 
   const handleSave = async () => {
     if (!canvasRef) {
-      alert("Platno ni dostopno");
+      alert("Canvas not available");
       return;
     }
 
@@ -77,7 +77,7 @@ export default function ParagraphDrawPage() {
       );
 
       if (!res.ok) {
-        throw new Error("Napaka pri shranjevanju slike");
+        throw new Error("Error saving image");
       }
 
       // Update local state
@@ -88,12 +88,12 @@ export default function ParagraphDrawPage() {
         return prev;
       });
 
-      alert("Slika uspešno shranjena!");
+      alert("Image saved successfully!");
       // Redirect back to story
       router.push(`/classes/${classId}/${storyId}`);
     } catch (err) {
-      console.error("Napaka pri shranjevanju:", err);
-      alert("Napaka pri shranjevanju slike");
+      console.error("Error saving:", err);
+      alert("Error saving image");
     } finally {
       setSaving(false);
     }
@@ -101,25 +101,25 @@ export default function ParagraphDrawPage() {
 
   if (loading) {
     return (
-      <div className="background min-h-screen">
-        <p className="text-text text-center pt-8">Nalaganje odlomka...</p>
+      <div className="risalko-app">
+        <div className="risalko-loading">
+          <div className="risalko-spinner"></div>
+          <p>Loading paragraph...</p>
+        </div>
       </div>
     );
   }
 
   if (error || !paragraph) {
     return (
-      <div className="background min-h-screen">
+      <div className="risalko-app">
         <div className="flex items-center justify-center min-h-screen">
-          <div className="text-center">
-            <p className="text-lg font-semibold text-red-300 mb-4">
-              {error || "Odlomek ni najden"}
+          <div className="risalko-card text-center">
+            <p className="text-lg font-semibold text-red-600 mb-4">
+              {error || "Paragraph not found"}
             </p>
-            <button
-              onClick={() => router.back()}
-              className="text-gray-300 hover:text-gray-100 transition-colors text-2xl"
-            >
-              ←
+            <button onClick={() => router.back()} className="risalko-btn risalko-btn-secondary">
+              ← Go Back
             </button>
           </div>
         </div>
@@ -128,33 +128,34 @@ export default function ParagraphDrawPage() {
   }
 
   return (
-    <div className="background min-h-screen flex flex-col">
+    <div className="min-h-screen bg-neutral-100 flex flex-col">
       {/* Header */}
-      <div className="px-4 py-3 flex-shrink-0 bg-gray-700/90 border-b-4 border-dashed border-yellow-400 shadow-md">
-        <div className="flex items-center justify-between">
+      <header className="px-4 py-3 flex-shrink-0 bg-white border-b border-neutral-200 shadow-sm">
+        <div className="flex items-center justify-between max-w-6xl mx-auto">
           <button
             onClick={() => router.back()}
-            className="inline-flex items-center gap-2 text-yellow-100 hover:text-yellow-200 transition-colors font-bold text-lg"
+            className="risalko-back-btn"
           >
             <ArrowLeft size={20} />
+            Back
           </button>
           <div className="text-center flex-1">
-            <h1 className="text-xl font-bold text-gray-100">Ilustriraj odlomek #{paragraph.order}</h1>
+            <h1 className="text-lg font-semibold text-neutral-800">Illustrate Paragraph #{paragraph.order}</h1>
           </div>
           <button
             onClick={handleSave}
             disabled={saving}
-            className="btn bg-yellow-100 text-text disabled:bg-gray-500 disabled:text-gray-700 flex items-center gap-2"
+            className="risalko-btn risalko-btn-primary flex items-center gap-2 disabled:opacity-50"
           >
-            <Save size={20} />
-            {saving ? "Shranjevanje..." : "Shrani"}
+            <Save size={18} />
+            {saving ? "Saving..." : "Save"}
           </button>
         </div>
-      </div>
+      </header>
 
       {/* Paragraph Text */}
-      <div className="px-4 py-3">
-        <p className="text-text font-semibold text-center leading-relaxed">
+      <div className="px-4 py-4 bg-indigo-50 border-b border-indigo-100">
+        <p className="text-neutral-700 font-medium text-center leading-relaxed max-w-3xl mx-auto">
           "{paragraph.content}"
         </p>
       </div>
@@ -164,10 +165,10 @@ export default function ParagraphDrawPage() {
         <DrawingCanvas onCanvasMount={setCanvasRef} initialImage={paragraph.drawing} />
       </div>
 
-      {/* Footer info */}
-      <div className="px-4 py-2 flex-shrink-0 bg-gray-700/60 text-center text-sm text-gray-200 border-t border-gray-400/30">
-        💡 Risaj svoj odlomek! Slika bo avtomatsko shranjena v bazo podatkov.
-      </div>
+      {/* Footer */}
+      <footer className="px-4 py-2 flex-shrink-0 bg-white text-center text-sm text-neutral-500 border-t border-neutral-200">
+        Draw your illustration! Click Save when you're done.
+      </footer>
     </div>
   );
 }

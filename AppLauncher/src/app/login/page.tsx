@@ -1,7 +1,6 @@
 "use client";
 import { useState, FormEvent, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import styles from "./login.module.css";
 import { API_ENDPOINTS } from "@/config/api";
 
 export default function LoginPage() {
@@ -70,43 +69,46 @@ export default function LoginPage() {
   // Show loading while checking authentication
   if (isCheckingAuth) {
     return (
-      <main className={styles.container}>
-        <div className={styles.card}>
-          <p>Loading...</p>
+      <main className="risalko-centered">
+        <div className="risalko-card risalko-content-narrow">
+          <div className="risalko-loading">
+            <div className="risalko-spinner"></div>
+            <p>Loading...</p>
+          </div>
         </div>
       </main>
     );
   }
 
   return (
-    <main className={styles.container}>
-      <div className={styles.card}>
-        <h1 className={styles.title}>Welcome Back</h1>
-        <p className={styles.subtitle}>Sign in to continue</p>
+    <main className="risalko-centered">
+      <div className="risalko-card risalko-content-narrow">
+        <h1 className="risalko-card-title risalko-mb-6">Welcome Back</h1>
+        <p className="risalko-card-subtitle">Sign in to continue</p>
 
-        {error && <div className={styles.error}>{error}</div>}
+        {error && <div className="risalko-alert-error">{error}</div>}
 
-        <div className={styles.toggleContainer}>
+        <div className="risalko-toggle-group">
           <button
             type="button"
-            className={`${styles.toggleButton} ${!isStudentLogin ? styles.active : ""}`}
+            className={`risalko-toggle-btn ${!isStudentLogin ? "active" : ""}`}
             onClick={() => setIsStudentLogin(false)}
           >
             Teacher
           </button>
           <button
             type="button"
-            className={`${styles.toggleButton} ${isStudentLogin ? styles.active : ""}`}
+            className={`risalko-toggle-btn ${isStudentLogin ? "active" : ""}`}
             onClick={() => setIsStudentLogin(true)}
           >
             Student
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className={styles.form}>
+        <form onSubmit={handleSubmit} className="risalko-form">
           {isStudentLogin ? (
-            <div className={styles.inputGroup}>
-              <label htmlFor="code" className={styles.label}>
+            <div className="risalko-form-group">
+              <label htmlFor="code" className="risalko-label">
                 Student Code
               </label>
               <input
@@ -115,14 +117,14 @@ export default function LoginPage() {
                 placeholder="Enter your student code"
                 value={studentCode}
                 onChange={(e) => setStudentCode(e.target.value)}
-                className={styles.input}
+                className="risalko-input"
                 required
               />
             </div>
           ) : (
             <>
-              <div className={styles.inputGroup}>
-                <label htmlFor="email" className={styles.label}>
+              <div className="risalko-form-group">
+                <label htmlFor="email" className="risalko-label">
                   Email
                 </label>
                 <input
@@ -131,13 +133,13 @@ export default function LoginPage() {
                   placeholder="Enter your email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className={styles.input}
+                  className="risalko-input"
                   required
                 />
               </div>
 
-              <div className={styles.inputGroup}>
-                <label htmlFor="password" className={styles.label}>
+              <div className="risalko-form-group">
+                <label htmlFor="password" className="risalko-label">
                   Password
                 </label>
                 <input
@@ -146,7 +148,7 @@ export default function LoginPage() {
                   placeholder="Enter your password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className={styles.input}
+                  className="risalko-input"
                   required
                 />
               </div>
@@ -155,7 +157,7 @@ export default function LoginPage() {
 
           <button
             type="submit"
-            className={styles.submitButton}
+            className="risalko-btn-primary"
             disabled={isLoading}
           >
             {isLoading ? "Signing in..." : "Sign In"}
@@ -163,9 +165,9 @@ export default function LoginPage() {
         </form>
 
         {!isStudentLogin && (
-          <p className={styles.registerLink}>
-            Don't have an account?{" "}
-            <a href="/register" className={styles.link}>
+          <p className="risalko-text-center risalko-text-muted risalko-mt-4">
+            Don&apos;t have an account?{" "}
+            <a href="/register" className="risalko-link">
               Register here
             </a>
           </p>

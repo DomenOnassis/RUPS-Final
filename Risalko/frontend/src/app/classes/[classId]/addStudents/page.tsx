@@ -69,7 +69,7 @@ const AddStudentsPage = () => {
         const validStudents = students.filter(s => s.firstName.trim() && s.lastName.trim());
 
         if (validStudents.length === 0) {
-            alert('Prosim dodajte vsaj enega učenca');
+            alert('Please add at least one student');
             return;
         }
 
@@ -138,87 +138,94 @@ const AddStudentsPage = () => {
                 throw new Error(updateResult.detail || 'Failed to update class');
             }
 
-            alert(`✅ Uspešno dodanih ${createdStudentIds.length} učencev v razred ${classData.class_name || ''}`);
+            alert(`✅ Successfully added ${createdStudentIds.length} students to class ${classData.class_name || ''}`);
+
 
             setStudents([{ firstName: '', lastName: '' }]);
 
         } catch (error) {
             console.error('Error adding students:', error);
-            alert(`Napaka pri dodajanju učencev: ${error instanceof Error ? error.message : 'Unknown error'}`);
+            alert(`Error adding students: ${error instanceof Error ? error.message : 'Unknown error'}`);
+
         }
     };
 
     if (loading) {
         return (
-            <div className="background min-h-screen flex items-center justify-center">
-                <p className="text-text">Nalagam podatke o razredu...</p>
+            <div className="risalko-app">
+                <div className="risalko-loading">
+                    <div className="risalko-spinner"></div>
+                    <p>Loading class data...</p>
+                </div>
             </div>
         );
     }
 
     return (
-        <div className="background min-h-screen flex items-center justify-center p-4">
-            <div className="section-dark max-w-2xl w-full">
-                <div className="mb-6">
-                    <button
-                        onClick={() => router.back()}
-                        className="text-yellow-100 hover:text-yellow-200 transition-colors font-medium text-2xl"
-                    >
-                        ←
+        <div className="risalko-app">
+            <header className="risalko-header">
+                <div className="risalko-header-content">
+                    <button onClick={() => router.back()} className="risalko-back-btn">
+                        ← Back
                     </button>
+                    <h1 className="risalko-header-title">Add Students</h1>
                 </div>
-                <h1 className="text-3xl font-bold text-center mb-6 gradient-text">
-                    Dodajanje učencov v razred {classData.class_name}
-                </h1>
-                <form onSubmit={handleSubmit} className="space-y-4">
-                    {students.map((student, index) => (
-                        <div key={index} className="flex gap-2 items-center">
-                            <input
-                                type="text"
-                                placeholder="Ime"
-                                value={student.firstName}
-                                onChange={(e) => handleChange(index, 'firstName', e.target.value)}
-                                className="input-text"
-                                required
-                            />
-                            <input
-                                type="text"
-                                placeholder="Priimek"
-                                value={student.lastName}
-                                onChange={(e) => handleChange(index, 'lastName', e.target.value)}
-                                className="input-text"
-                                required
-                            />
-                            {students.length > 1 && (
-                                <button
-                                    type="button"
-                                    onClick={() => removeStudent(index)}
-                                    className="text-red-300 hover:text-red-100 font-bold px-2 text-2xl"
-                                >
-                                    ×
-                                </button>
-                            )}
-                        </div>
-                    ))}
+            </header>
 
-                    <div className="flex gap-4 pt-2">
-                        <button
-                            type="button"
-                            onClick={addStudent}
-                            className="btn bg-sky-400 text-text flex-1"
-                        >
-                            Dodaj učenca
-                        </button>
-
-                        <button
-                            type="submit"
-                            className="btn bg-yellow-100 text-text flex-1"
-                        >
-                            Potrdi
-                        </button>
+            <main className="risalko-content-narrow">
+                <div className="risalko-card">
+                    <div className="risalko-card-header">
+                        <h2 className="risalko-card-title">Add Students to {classData.class_name}</h2>
+                        <p className="risalko-card-subtitle">Enter student names to create their accounts</p>
                     </div>
-                </form>
-            </div>
+
+                    <form onSubmit={handleSubmit} className="risalko-form-section">
+                        {students.map((student, index) => (
+                            <div key={index} className="flex gap-3 items-center">
+                                <input
+                                    type="text"
+                                    placeholder="First Name"
+                                    value={student.firstName}
+                                    onChange={(e) => handleChange(index, 'firstName', e.target.value)}
+                                    className="risalko-input flex-1"
+                                    required
+                                />
+                                <input
+                                    type="text"
+                                    placeholder="Last Name"
+                                    value={student.lastName}
+                                    onChange={(e) => handleChange(index, 'lastName', e.target.value)}
+                                    className="risalko-input flex-1"
+                                    required
+                                />
+                                {students.length > 1 && (
+                                    <button
+                                        type="button"
+                                        onClick={() => removeStudent(index)}
+                                        className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition"
+                                    >
+                                        ×
+                                    </button>
+                                )}
+                            </div>
+                        ))}
+
+                        <div className="flex gap-3 pt-4">
+                            <button
+                                type="button"
+                                onClick={addStudent}
+                                className="risalko-btn risalko-btn-secondary flex-1"
+                            >
+                                + Add Another
+                            </button>
+
+                            <button type="submit" className="risalko-btn risalko-btn-primary flex-1">
+                                Save Students
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </main>
         </div>
     );
 };

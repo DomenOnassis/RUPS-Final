@@ -54,7 +54,7 @@ const AssignExcerptsPage = () => {
           setStudents(data.data.students);
         }
       } catch (error) {
-        console.error("Napaka pri pridobivanju učencev:", error);
+        console.error("Error loading students:", error);
       } finally {
         setLoading(false);
       }
@@ -135,7 +135,7 @@ const AssignExcerptsPage = () => {
       }
 
       if (!storyId) {
-        throw new Error('Napaka pri ustvarjanju zgodbe (ni ID)');
+        throw new Error('Error creating story (no ID)');
       }
 
       const paragraphPromises = excerpts.map(async (excerpt) => {
@@ -187,15 +187,15 @@ const AssignExcerptsPage = () => {
         });
       }
 
-      alert(`✅ Zgodba "${storyData.title}" z ${assignedCount} odlomki uspešno ustvarjena!`);
+      alert(`✅ Story "${storyData.title}" with ${assignedCount} paragraphs created successfully!`);
       
       sessionStorage.removeItem('newStory');
       sessionStorage.removeItem('storyExcerpts');
       
       router.push(`/classes/${classId}`);
     } catch (error) {
-      console.error('Napaka pri shranjevanju zgodbe:', error);
-      alert('Napaka pri shranjevanju zgodbe. Poskusite znova.');
+      console.error('Error saving story:', error);
+      alert('Error saving story. Please try again.');
     } finally {
       setSaving(false);
     }
@@ -203,25 +203,30 @@ const AssignExcerptsPage = () => {
 
   if (loading || !storyData || excerpts.length === 0) {
     return (
-      <div className="background min-h-screen flex items-center justify-center">
-        <p className="text-text">Nalaganje...</p>
+      <div className="risalko-app">
+        <div className="risalko-loading">
+          <div className="risalko-spinner"></div>
+          <p>Loading...</p>
+        </div>
       </div>
     );
   }
 
   if (students.length === 0) {
     return (
-      <div className="background min-h-screen flex items-center justify-center p-6">
-        <div className="section-dark text-center rounded-2xl p-8">
-          <p className="text-lg font-semibold text-gray-100 mb-2">Ni učencev v tem razredu</p>
-          <p className="text-gray-300 mb-4">Prosimo dodajte učence pred dodeljevanjem odlomkov.</p>
-          <button
-            onClick={() => router.push(`/classes/${classId}/addStudents`)}
-            className="btn bg-yellow-100 text-text"
-          >
-            Dodaj učence
-          </button>
-        </div>
+      <div className="risalko-app">
+        <main className="risalko-content-narrow">
+          <div className="risalko-card text-center">
+            <p className="text-lg font-semibold text-neutral-800 mb-2">No students in this class</p>
+            <p className="text-neutral-500 mb-4">Please add students before assigning paragraphs.</p>
+            <button
+              onClick={() => router.push(`/classes/${classId}/addStudents`)}
+              className="risalko-btn risalko-btn-primary"
+            >
+              Add Students
+            </button>
+          </div>
+        </main>
       </div>
     );
   }
@@ -229,96 +234,90 @@ const AssignExcerptsPage = () => {
   const allAssigned = excerpts.every(e => e.assignedTo);
 
   return (
-    <div className="background min-h-screen p-4">
-      <div className="max-w-5xl mx-auto flex flex-col">
-        <div className="mb-6">
-          <button
-            onClick={() => router.back()}
-            className="text-text transition-all font-medium hover:scale-110 text-2xl"
-          >
-            ←
+    <div className="risalko-app">
+      <header className="risalko-header">
+        <div className="risalko-header-content">
+          <button onClick={() => router.back()} className="risalko-back-btn">
+            ← Back
           </button>
+          <div>
+            <h1 className="risalko-header-title">Assign Paragraphs</h1>
+            <p className="text-sm text-neutral-500 mt-1">
+              {storyData.title} — {excerpts.length} paragraphs
+            </p>
+          </div>
         </div>
+      </header>
 
-        <h1 className="text-6xl font-bold text-center mb-2 gradient-text text-outline-dark">
-          📚 Dodeli odlomke učencem 👥
-        </h1>
-        <p className="text-center text-text mb-4 text-xl font-bold">
-          {storyData.title} - {excerpts.length} odlomkov
-        </p>
-
-        <div className="section-dark rounded-2xl p-4">
+      <main className="risalko-content">
+        {/* Mode Toggle */}
+        <div className="risalko-card mb-6">
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-            <div className="flex gap-4">
+            <div className="flex gap-3">
               <button
                 onClick={() => setAssignmentMode('manual')}
-                className={`btn py-2 px-6 rounded-lg font-semibold transition-all ${
+                className={`px-4 py-2 rounded-lg font-medium transition-all border-2 ${
                   assignmentMode === 'manual'
-                    ? 'bg-yellow-100 text-text shadow-lg'
-                    : 'bg-gray-600 text-gray-200 hover:bg-gray-500'
+                    ? 'bg-indigo-50 border-indigo-500 text-indigo-700'
+                    : 'bg-white border-neutral-200 text-neutral-600 hover:border-neutral-300'
                 }`}
               >
-                ✋ Ročna dodelitev
+                ✋ Manual
               </button>
               <button
                 onClick={() => setAssignmentMode('random')}
-                className={`btn py-2 px-6 rounded-lg font-semibold transition-all ${
+                className={`px-4 py-2 rounded-lg font-medium transition-all border-2 ${
                   assignmentMode === 'random'
-                    ? 'bg-yellow-100 text-text shadow-lg'
-                    : 'bg-gray-600 text-gray-200 hover:bg-gray-500'
+                    ? 'bg-indigo-50 border-indigo-500 text-indigo-700'
+                    : 'bg-white border-neutral-200 text-neutral-600 hover:border-neutral-300'
                 }`}
               >
-                🎲 Naključna dodelitev
+                🎲 Random
               </button>
             </div>
 
             {assignmentMode === 'random' && (
               <div className="flex gap-3">
-                <button
-                  onClick={handleRandomAssign}
-                  className="btn bg-green-400 text-text"
-                >
-                  🎲 Dodeli naključno
+                <button onClick={handleRandomAssign} className="risalko-btn risalko-btn-primary">
+                  🎲 Assign Randomly
                 </button>
-                <button
-                  onClick={clearAssignments}
-                  className="btn bg-sky-400 text-text"
-                >
-                  Počisti
+                <button onClick={clearAssignments} className="risalko-btn risalko-btn-ghost">
+                  Clear
                 </button>
               </div>
             )}
           </div>
         </div>
 
-        <div className="section-dark rounded-2xl p-6 mt-2">
-          <div className="space-y-4 max-h-[50vh] overflow-y-auto pr-2 no-scrollbar">
+        {/* Paragraphs List */}
+        <div className="risalko-card">
+          <div className="space-y-4 max-h-[50vh] overflow-y-auto">
             {excerpts.map((excerpt) => (
               <div
                 key={excerpt.id}
-                className="bg-gradient-to-br from-purple-50 to-blue-50 dark:from-purple-900/20 dark:to-blue-900/20 p-5 rounded-lg border border-purple-200 dark:border-purple-700 shadow-sm"
+                className="p-4 bg-neutral-50 rounded-xl border border-neutral-200"
               >
                 <div className="flex items-start gap-4">
-                  <span className="inline-block bg-purple-600 text-white text-sm font-bold px-3 py-1 rounded flex-shrink-0">
+                  <span className="inline-block bg-indigo-600 text-white text-sm font-bold px-3 py-1 rounded-lg flex-shrink-0">
                     #{excerpt.order}
                   </span>
                   
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm text-gray-700 dark:text-gray-300 mb-3 line-clamp-3">
+                    <p className="text-sm text-neutral-600 mb-3 line-clamp-3">
                       {excerpt.text}
                     </p>
                     
                     {assignmentMode === 'manual' ? (
                       <div className="flex items-center gap-3">
-                        <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                          Dodeli učencu:
+                        <label className="text-sm font-medium text-neutral-600">
+                          Assign to:
                         </label>
                         <select
                           value={excerpt.assignedTo || ''}
                           onChange={(e) => handleManualAssign(excerpt.id, e.target.value)}
-                          className="px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-900 text-gray-700 dark:text-gray-300 focus:ring-2 focus:ring-purple-500 focus:outline-none"
+                          className="risalko-input w-auto"
                         >
-                          <option value="">-- Izberi učenca --</option>
+                          <option value="">-- Select student --</option>
                           {students.map((student) => (
                             <option key={student.id} value={student.id.toString()}>
                               {student.name} {student.surname}
@@ -329,17 +328,12 @@ const AssignExcerptsPage = () => {
                     ) : (
                       <div className="flex items-center gap-2">
                         {excerpt.assignedTo ? (
-                          <>
-                            <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                              Dodeljeno:
-                            </span>
-                            <span className="inline-block bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300 px-3 py-1 rounded-full text-sm font-medium">
-                              👤 {getStudentName(excerpt.assignedTo)}
-                            </span>
-                          </>
+                          <span className="inline-block bg-emerald-100 text-emerald-700 px-3 py-1 rounded-full text-sm font-medium">
+                            👤 {getStudentName(excerpt.assignedTo)}
+                          </span>
                         ) : (
-                          <span className="text-sm text-gray-500 dark:text-gray-400 italic">
-                            Ni dodeljeno
+                          <span className="text-sm text-neutral-400 italic">
+                            Not assigned
                           </span>
                         )}
                       </div>
@@ -350,22 +344,22 @@ const AssignExcerptsPage = () => {
             ))}
           </div>
 
-          <div className="mt-6 pt-6 border-t border-gray-400">
+          <div className="mt-6 pt-6 border-t border-neutral-200">
             <div className="flex items-center justify-between">
-              <div className="text-sm text-gray-200">
-                Dodeljeno: {excerpts.filter(e => e.assignedTo).length} / {excerpts.length}
+              <div className="text-sm text-neutral-500">
+                Assigned: {excerpts.filter(e => e.assignedTo).length} / {excerpts.length}
               </div>
               <button
                 onClick={handleFinish}
                 disabled={!allAssigned || saving}
-                className="btn bg-green-400 text-text disabled:bg-gray-500 disabled:text-gray-700"
+                className="risalko-btn risalko-btn-primary disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {saving ? '⏳ Shranjevanje...' : allAssigned ? '✅ Zaključi in shrani' : '⚠️ Dodeli vse odlomke za nadaljevanje'}
+                {saving ? '⏳ Saving...' : allAssigned ? '✓ Finish & Save' : 'Assign all to continue'}
               </button>
             </div>
           </div>
         </div>
-      </div>
+      </main>
     </div>
   );
 };

@@ -83,7 +83,7 @@ const ClassPage = () => {
             story_id: fs.story_id,
             paragraphs: fs.paragraphs || [],
             story: fs.story || {
-              title: 'Neznana zgodba',
+              title: 'Unknown Story',
               short_description: '',
               author: ''
             }
@@ -91,7 +91,7 @@ const ClassPage = () => {
           setFinalizedStories(finalized);
         }
       } catch (error) {
-        console.error("Napaka pri pridobivanju podatkov razreda:", error);
+        console.error("Error loading class data:", error);
       } finally {
         setLoading(false);
       }
@@ -103,7 +103,7 @@ const ClassPage = () => {
   if (loading) {
     return (
       <div className="background">
-        <p className="text-text text-center pt-8">Nalaganje razreda...</p>
+        <p className="text-text text-center pt-8">Loading class...</p>
       </div>
     );
   }
@@ -136,241 +136,229 @@ const ClassPage = () => {
   };
 
   return (
-    <div className="background">
-      <div className="mx-auto">
-        <div className="flex justify-between items-center mb-8 bg-gray-700/90 p-8">
-          <div>
-            <div className="flex items-center gap-3 mb-2">
-              <button
-                onClick={() => router.push('/classes')}
-                className="text-gray-300 hover:text-gray-100 transition-colors text-lg font-semibold"
-              >
-                ←
-              </button>
-              <h1 className="text-3xl font-bold text-gray-200">{className || 'Razred'}</h1>
+    <div className="risalko-app">
+      <header className="risalko-header">
+        <div className="risalko-header-content">
+          <div className="flex items-center gap-4">
+            <button onClick={() => router.push('/classes')} className="risalko-back-btn">
+              ← Back
+            </button>
+            <div>
+              <h1 className="risalko-header-title">{className || 'Class'}</h1>
+              <p className="text-sm text-neutral-500 mt-1">
+                {isStudent ? 'My Assignments' : 'Stories and Students'}
+              </p>
             </div>
-            <p className="text-gray-300 font-semibold text-lg">
-              {isStudent ? 'Moje naloge' : 'Zgodbe in učenci'}
-            </p>
           </div>
-
           {isTeacher && (
-            <Link
-              href={`/classes/${classId}/addStory`}
-              className="btn bg-yellow-100 text-text"
-            >
-              + Dodaj zgodbo
+            <Link href={`/classes/${classId}/addStory`} className="risalko-btn risalko-btn-primary">
+              + Add Story
             </Link>
           )}
         </div>
+      </header>
 
-        <div className="p-8">
-          {isTeacher && (
-            <div className="mb-6 flex flex-wrap gap-4">
-              <Link
-                href={`/classes/${classId}/addStudents`}
-                className="btn inline-block bg-sky-400 text-text"
-              >
-                + Dodaj učenca
-              </Link>
-
-              <Link
-                href={`/classes/${classId}/viewStudents`}
-                className="btn inline-block bg-purple-400 text-text"
-              >
-                👥 Ogled učencev
-              </Link>
-            </div>
-          )}
-          {/* Tabs */}
-          <div className="border-b border-gray-300 mb-6 flex gap-6">
-            <button
-              onClick={() => setActiveTab("workshop")}
-              className={`cursor-pointer pb-2 font-semibold text-lg ${activeTab === "workshop"
-                  ? "text-sky-500 border-b-4 border-sky-500"
-                  : "text-gray-500 hover:text-gray-700"
-                }`}
-            >
-              Delavnica
-            </button>
-
-            <button
-              onClick={() => setActiveTab("finished")}
-              className={`cursor-pointer pb-2 font-semibold text-lg ${activeTab === "finished"
-                  ? "text-sky-500 border-b-4 border-sky-500"
-                  : "text-gray-500 hover:text-gray-700"
-                }`}
-            >
-              Dokončane
-            </button>
+      <main className="risalko-content">
+        {isTeacher && (
+          <div className="flex gap-3 mb-6">
+            <Link href={`/classes/${classId}/addStudents`} className="risalko-btn risalko-btn-secondary text-sm">
+              + Add Student
+            </Link>
+            <Link href={`/classes/${classId}/viewStudents`} className="risalko-btn risalko-btn-ghost text-sm">
+              👥 View Students
+            </Link>
           </div>
+        )}
 
-          {activeTab === "workshop" && (
-            <div>
-              <h2 className="text-2xl font-semibold text-gray-800 mb-6">
-                {isStudent ? 'Moje naloge' : 'Aktivne zgodbe'}
-              </h2>
+        {/* Tabs */}
+        <div className="border-b border-neutral-200 mb-8 flex gap-8">
+          <button
+            onClick={() => setActiveTab("workshop")}
+            className={`pb-3 font-medium text-base transition-colors ${activeTab === "workshop"
+                ? "text-indigo-600 border-b-2 border-indigo-600"
+                : "text-neutral-500 hover:text-neutral-700"
+              }`}
+          >
+            Workshop
+          </button>
+          <button
+            onClick={() => setActiveTab("finished")}
+            className={`pb-3 font-medium text-base transition-colors ${activeTab === "finished"
+                ? "text-indigo-600 border-b-2 border-indigo-600"
+                : "text-neutral-500 hover:text-neutral-700"
+              }`}
+          >
+            Completed
+          </button>
+        </div>
 
-              {stories.length === 0 ? (
-                <p className="text-text-muted text-center py-8">
-                  {isStudent ? 'Nimate dodeljenih nalogic.' : 'Ni aktivnih zgodb. Ustvarite novo!'}
-                </p>
-              ) : (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {stories.filter(s => !s.is_finished).map((story) => (
-                    <Link
-                      key={story.id}
-                      href={`/classes/${classId}/${story.id}`}
-                      className="card bg-sky-400 cursor-pointer max-w-lg"
-                    >
-                      <h3 className="text-lg font-semibold text-text mb-2">
+        {activeTab === "workshop" && (
+          <div>
+            <h2 className="text-xl font-semibold text-neutral-800 mb-6">
+              {isStudent ? 'My Assignments' : 'Active Stories'}
+            </h2>
+
+            {stories.length === 0 ? (
+              <div className="risalko-empty">
+                <p>{isStudent ? 'No assignments yet.' : 'No active stories. Create one!'}</p>
+              </div>
+            ) : (
+              <div className="risalko-grid">
+                {stories.filter(s => !s.is_finished).map((story) => (
+                  <Link
+                    key={story.id}
+                    href={`/classes/${classId}/${story.id}`}
+                    className="risalko-card-interactive"
+                  >
+                    <div className="flex items-start justify-between mb-3">
+                      <h3 className="text-lg font-semibold text-neutral-800">
                         {story.title}
                       </h3>
-                      <p className="text-text-muted line-clamp-3">
-                        {story.short_description || "Brez opisa"}
+                      <span className="px-2 py-1 bg-indigo-100 text-indigo-700 text-xs font-medium rounded-full">
+                        In Progress
+                      </span>
+                    </div>
+                    <p className="text-neutral-600 text-sm line-clamp-3 mb-4">
+                      {story.short_description || "No description"}
+                    </p>
+                    {story.author && (
+                      <p className="text-xs text-neutral-500 font-medium">
+                        Author: {story.author}
                       </p>
-                      {story.author && (
-                        <p className="text-sm text-text-muted mt-3 font-medium">
-                          Avtor: {story.author}
-                        </p>
-                      )}
-                      {isStudent && (
-                        <p className="text-xs text-text-muted mt-3 pt-3 border-t border-text-muted/30">
-                          📝 Tvoja naloga
-                        </p>
-                      )}
-                    </Link>
-                  ))}
-                </div>
-              )}
-            </div>
-          )}
+                    )}
+                    {isStudent && (
+                      <p className="text-xs text-indigo-600 mt-3 pt-3 border-t border-neutral-100 font-medium">
+                        📝 Your assignment
+                      </p>
+                    )}
+                  </Link>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
 
-          {activeTab === "finished" && (
-            <div>
-              <h2 className="text-2xl font-semibold text-gray-800 mb-6">
-                Dokončane slikanice
-              </h2>
+        {activeTab === "finished" && (
+          <div>
+            <h2 className="text-xl font-semibold text-neutral-800 mb-6">
+              Completed Illustrations
+            </h2>
 
-              {finalizedStories.length === 0 ? (
-                <p className="text-text-muted text-center py-8">Ni dokončanih slikannic.</p>
-              ) : (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {finalizedStories.map((story, idx) => {
-                    const storyId = story.story_id || idx;
-                    const hasParagraphs = story.paragraphs && story.paragraphs.length > 0;
+            {finalizedStories.length === 0 ? (
+              <div className="risalko-empty">
+                <p>No completed illustrations yet.</p>
+              </div>
+            ) : (
+              <div className="risalko-grid">
+                {finalizedStories.map((story, idx) => {
+                  const storyId = story.story_id || idx;
+                  const hasParagraphs = story.paragraphs && story.paragraphs.length > 0;
 
-                    return (
-                      <button
-                        key={storyId}
-                        onClick={() => hasParagraphs && openSlideshow(story)}
-                        disabled={!hasParagraphs}
-                        className={`card cursor-pointer max-w-lg text-left ${hasParagraphs
-                            ? 'bg-green-400'
-                            : 'bg-gray-400 opacity-60 cursor-not-allowed'
-                          }`}
-                      >
-                        <h3 className="text-lg font-semibold text-text mb-2">
-                          {story.story?.title || 'Neznana zgodba'}
+                  return (
+                    <button
+                      key={storyId}
+                      onClick={() => hasParagraphs && openSlideshow(story)}
+                      disabled={!hasParagraphs}
+                      className={`risalko-card-interactive text-left ${!hasParagraphs ? 'opacity-50 cursor-not-allowed' : ''}`}
+                    >
+                      <div className="flex items-start justify-between mb-3">
+                        <h3 className="text-lg font-semibold text-neutral-800">
+                          {story.story?.title || 'Unknown Story'}
                         </h3>
-                        <p className="text-text-muted line-clamp-3">
-                          {story.story?.short_description || "Brez opisa"}
+                        <span className={`px-2 py-1 text-xs font-medium rounded-full ${hasParagraphs ? 'bg-emerald-100 text-emerald-700' : 'bg-neutral-100 text-neutral-500'}`}>
+                          {hasParagraphs ? 'Complete' : 'Empty'}
+                        </span>
+                      </div>
+                      <p className="text-neutral-600 text-sm line-clamp-3 mb-4">
+                        {story.story?.short_description || "No description"}
+                      </p>
+                      {story.story?.author && (
+                        <p className="text-xs text-neutral-500 font-medium">
+                          Author: {story.story.author}
                         </p>
-                        {story.story?.author && (
-                          <p className="text-sm text-text-muted mt-3 font-medium">
-                            Avtor: {story.story.author}
-                          </p>
-                        )}
-                        <p className="text-xs text-text-muted mt-3 pt-3 border-t border-text-muted/30">
-                          📚 {story.paragraphs?.length || 0} odlomkov
-                        </p>
-                        {!hasParagraphs && (
-                          <p className="text-xs text-red-600 font-semibold mt-2">
-                            Ni odlomkov za prikaz
-                          </p>
-                        )}
-                      </button>
-                    );
-                  })}
-                </div>
-              )}
-            </div>
-          )}
-        </div>
-      </div>
+                      )}
+                      <p className="text-xs text-neutral-500 mt-3 pt-3 border-t border-neutral-100">
+                        📚 {story.paragraphs?.length || 0} paragraphs
+                      </p>
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        )}
+      </main>
 
+      {/* Slideshow Modal */}
       {slideshowStory && slideshowStory.paragraphs.length > 0 && (
-        <div className="fixed inset-0 bg-gradient-to-br from-yellow-100 via-pink-100 to-purple-200 z-50 flex items-center justify-between px-2 sm:px-4">
+        <div className="fixed inset-0 bg-neutral-900/95 z-50 flex items-center justify-center">
           <button
             onClick={closeSlideshow}
-            className="absolute top-4 right-4 bg-yellow-100 hover:bg-yellow-200 text-text rounded-full p-3 transition-colors z-10 shadow-lg border-2 border-gray-400"
+            className="absolute top-6 right-6 bg-white/10 hover:bg-white/20 text-white rounded-full p-3 transition-colors z-10"
           >
-            <X size={28} />
+            <X size={24} />
           </button>
 
           <button
             onClick={handlePrevImage}
-            className="absolute left-2 sm:left-4 top-1/2 transform -translate-y-1/2 bg-sky-500 hover:bg-sky-600 text-white rounded-full p-4 sm:p-5 transition-colors shadow-lg border-3 border-white"
-            aria-label="Prejšnji odlomek"
+            className="absolute left-4 sm:left-8 top-1/2 -translate-y-1/2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-full p-4 transition-colors shadow-lg"
+            aria-label="Previous paragraph"
           >
-            <ChevronLeft size={48} />
+            <ChevronLeft size={32} />
           </button>
 
-          <div className="w-full h-full flex flex-col items-center justify-center overflow-y-auto pt-20 pb-20">
-            <div className="w-full max-w-5xl lg:max-w-4xl xl:max-w-4xl 2xl:max-w-5xl mx-auto px-4 py-8">
-              <div className="text-center mb-8 lg:mb-12">
-                <h1 className="text-4xl sm:text-5xl lg:text-5xl xl:text-5xl font-black text-gray-900 mb-3 drop-shadow-lg">
-                  {slideshowStory.story?.title}
-                </h1>
-                <p className="text-gray-800 text-lg sm:text-xl lg:text-xl font-semibold">
-                  Odlomek {currentImageIndex + 1} od {slideshowStory.paragraphs.length}
+          <div className="w-full max-w-4xl mx-auto px-4 py-8 overflow-y-auto max-h-screen">
+            <div className="text-center mb-8">
+              <h1 className="text-3xl sm:text-4xl font-bold text-white mb-2">
+                {slideshowStory.story?.title}
+              </h1>
+              <p className="text-neutral-400 text-lg">
+                Paragraph {currentImageIndex + 1} of {slideshowStory.paragraphs.length}
+              </p>
+            </div>
+
+            <div className="bg-white rounded-2xl shadow-2xl p-6 sm:p-8">
+              <div className="mb-6 bg-indigo-50 p-6 rounded-xl border-l-4 border-indigo-500">
+                <p className="text-neutral-800 text-lg leading-relaxed">
+                  "{slideshowStory.paragraphs[currentImageIndex].content}"
                 </p>
               </div>
 
-              {/* Paragraph Content and Image */}
-              <div className="bg-white/95 backdrop-blur-sm rounded-2xl lg:rounded-2xl shadow-2xl p-6 sm:p-8 lg:p-10 border-4 border-gray-200">
-                <div className="mb-8 lg:mb-10 bg-sky-50 p-6 sm:p-8 lg:p-8 rounded-xl border-l-8 border-sky-500">
-                  <p className="text-gray-800 text-lg sm:text-xl lg:text-2xl leading-relaxed font-semibold">
-                    "{slideshowStory.paragraphs[currentImageIndex].content}"
+              {slideshowStory.paragraphs[currentImageIndex].drawing && (
+                <div className="flex flex-col items-center">
+                  <p className="text-neutral-600 text-sm font-medium mb-4">
+                    🎨 Illustration
                   </p>
-                </div>
-
-                {slideshowStory.paragraphs[currentImageIndex].drawing && (
-                  <div className="flex flex-col items-center">
-                    <p className="text-gray-700 text-base sm:text-lg lg:text-lg font-semibold mb-6">
-                      🎨 Ilustracija:
-                    </p>
-                    <img
-                      src={slideshowStory.paragraphs[currentImageIndex].drawing}
-                      alt={`Ilustracija odlomka ${currentImageIndex + 1}`}
-                      className="w-full max-h-80 sm:max-h-96 lg:max-h-[500px] xl:max-h-[550px] object-contain rounded-xl border-4 border-gray-300 shadow-lg"
-                    />
-                  </div>
-                )}
-              </div>
-
-              <div className="mt-8 lg:mt-10 flex items-center justify-center gap-4 sm:gap-6">
-                <div className="w-48 sm:w-56 lg:w-64 h-4 bg-gray-300 rounded-full overflow-hidden border-2 border-gray-400">
-                  <div
-                    className="h-full bg-gradient-to-r from-sky-500 to-sky-600 transition-all"
-                    style={{
-                      width: `${((currentImageIndex + 1) / slideshowStory.paragraphs.length) * 100}%`,
-                    }}
+                  <img
+                    src={slideshowStory.paragraphs[currentImageIndex].drawing}
+                    alt={`Illustration paragraph ${currentImageIndex + 1}`}
+                    className="w-full max-h-[500px] object-contain rounded-xl border border-neutral-200"
                   />
                 </div>
-                <span className="text-gray-800 font-bold text-lg sm:text-xl">
-                  {currentImageIndex + 1}/{slideshowStory.paragraphs.length}
-                </span>
+              )}
+            </div>
+
+            <div className="mt-8 flex items-center justify-center gap-4">
+              <div className="w-48 h-2 bg-neutral-700 rounded-full overflow-hidden">
+                <div
+                  className="h-full bg-indigo-500 transition-all"
+                  style={{
+                    width: `${((currentImageIndex + 1) / slideshowStory.paragraphs.length) * 100}%`,
+                  }}
+                />
               </div>
+              <span className="text-neutral-400 font-medium">
+                {currentImageIndex + 1}/{slideshowStory.paragraphs.length}
+              </span>
             </div>
           </div>
 
           <button
             onClick={handleNextImage}
-            className="absolute right-2 sm:right-4 top-1/2 transform -translate-y-1/2 bg-sky-500 hover:bg-sky-600 text-white rounded-full p-4 sm:p-5 transition-colors shadow-lg border-3 border-white"
-            aria-label="Naslednji odlomek"
+            className="absolute right-4 sm:right-8 top-1/2 -translate-y-1/2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-full p-4 transition-colors shadow-lg"
+            aria-label="Next paragraph"
           >
-            <ChevronRight size={48} />
+            <ChevronRight size={32} />
           </button>
         </div>
       )}

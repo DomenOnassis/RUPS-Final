@@ -68,58 +68,54 @@ const Classes = () => {
   };
 
   return (
-    <div className="background min-h-screen flex items-center justify-center p-4">
-      <div className="section-dark max-w-md w-full">
-        <div className="mb-6">
-          <button
-            onClick={() => router.back()}
-            className="text-yellow-100 hover:text-yellow-200 transition-colors font-medium text-2xl"
-          >
-            ←
-          </button>
-        </div>
-        <h1 className="text-3xl font-bold text-center mb-6 gradient-text">
-          Ustvari nov razred
-        </h1>
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="flex flex-col">
-            <label className="block text-sm font-medium text-gray-200 mb-2">
-              Ime razreda
-            </label>
-            <input
-              type="text"
-              name="className"
-              placeholder="Ime razreda"
-              value={classData.className}
-              onChange={handleChange}
-              required
-              className="input-text"
-            />
+    <div className="risalko-app">
+      <header className="risalko-header">
+        <div className="risalko-header-content">
+          <div className="flex items-center gap-3">
+            <button onClick={() => router.back()} className="risalko-back-btn">
+              ←
+            </button>
+            <h1 className="risalko-header-title">New Class</h1>
           </div>
+        </div>
+      </header>
 
-          <div className="flex flex-col">
-            <label className="block text-sm font-medium text-gray-200 mb-2">
-              Barva razreda
-            </label>
-            <div className="flex items-center gap-3">
+      <main className="risalko-content-narrow">
+        <div className="risalko-card">
+          <form onSubmit={handleSubmit} className="risalko-form-section">
+            <div className="risalko-form-group">
+              <label className="risalko-label">Class Name</label>
               <input
-                type="color"
-                name="color"
-                value={classData.color}
+                type="text"
+                name="className"
+                placeholder="Enter class name"
+                value={classData.className}
                 onChange={handleChange}
-                className="w-12 h-12 cursor-pointer rounded-md border border-gray-300"
+                required
+                className="risalko-input"
               />
             </div>
-          </div>
 
-          <button
-            type="submit"
-            className="btn bg-yellow-100 text-text w-full"
-          >
-            Ustvari razred
-          </button>
-        </form>
-      </div>
+            <div className="risalko-form-group">
+              <label className="risalko-label">Class Color</label>
+              <div className="flex items-center gap-3">
+                <input
+                  type="color"
+                  name="color"
+                  value={classData.color}
+                  onChange={handleChange}
+                  className="w-12 h-12 cursor-pointer rounded-lg border border-neutral-300 bg-white"
+                />
+                <span className="text-sm text-neutral-500">Choose a color to identify this class</span>
+              </div>
+            </div>
+
+            <button type="submit" className="risalko-btn-primary w-full">
+              Create Class
+            </button>
+          </form>
+        </div>
+      </main>
     </div>
   );
 };

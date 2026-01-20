@@ -13,8 +13,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Risalko - Kjer zgodbe oživijo",
-  description: "Ustvarjalna platforma, kjer osnovnošolci oživijo zgodbe z risbami in domišljijo",
+  title: "Risalko",
+  description: "Create and illustrate stories through collaborative drawing and visual storytelling",
 };
 
 export default function RootLayout({

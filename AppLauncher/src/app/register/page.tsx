@@ -1,7 +1,6 @@
 "use client";
 import { useState, FormEvent, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import styles from "./register.module.css";
 import { API_ENDPOINTS } from "@/config/api";
 
 export default function RegisterPage() {
@@ -98,43 +97,46 @@ export default function RegisterPage() {
   // Show loading while checking authentication
   if (isCheckingAuth) {
     return (
-      <main className={styles.container}>
-        <div className={styles.card}>
-          <p>Loading...</p>
+      <main className="risalko-centered">
+        <div className="risalko-card risalko-content-narrow">
+          <div className="risalko-loading">
+            <div className="risalko-spinner"></div>
+            <p>Loading...</p>
+          </div>
         </div>
       </main>
     );
   }
 
   return (
-    <main className={styles.container}>
-      <div className={styles.card}>
-        <h1 className={styles.title}>Create Account</h1>
-        <p className={styles.subtitle}>Join us today</p>
+    <main className="risalko-centered">
+      <div className="risalko-card risalko-content-narrow">
+        <h1 className="risalko-card-title risalko-mb-6">Create Account</h1>
+        <p className="risalko-card-subtitle">Join us today</p>
 
-        {error && <div className={styles.error}>{error}</div>}
+        {error && <div className="risalko-alert-error">{error}</div>}
 
-        <div className={styles.toggleContainer}>
+        <div className="risalko-toggle-group">
           <button
             type="button"
-            className={`${styles.toggleButton} ${userType === "teacher" ? styles.active : ""}`}
+            className={`risalko-toggle-btn ${userType === "teacher" ? "active" : ""}`}
             onClick={() => setUserType("teacher")}
           >
             Teacher
           </button>
           <button
             type="button"
-            className={`${styles.toggleButton} ${userType === "student" ? styles.active : ""}`}
+            className={`risalko-toggle-btn ${userType === "student" ? "active" : ""}`}
             onClick={() => setUserType("student")}
           >
             Student
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className={styles.form}>
-          <div className={styles.inputRow}>
-            <div className={styles.inputGroup}>
-              <label htmlFor="name" className={styles.label}>
+        <form onSubmit={handleSubmit} className="risalko-form">
+          <div className="risalko-form-row">
+            <div className="risalko-form-group">
+              <label htmlFor="name" className="risalko-label">
                 First Name
               </label>
               <input
@@ -143,13 +145,13 @@ export default function RegisterPage() {
                 placeholder="Enter your first name"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                className={styles.input}
+                className="risalko-input"
                 required
               />
             </div>
 
-            <div className={styles.inputGroup}>
-              <label htmlFor="surname" className={styles.label}>
+            <div className="risalko-form-group">
+              <label htmlFor="surname" className="risalko-label">
                 Last Name
               </label>
               <input
@@ -158,14 +160,14 @@ export default function RegisterPage() {
                 placeholder="Enter your last name"
                 value={surname}
                 onChange={(e) => setSurname(e.target.value)}
-                className={styles.input}
+                className="risalko-input"
                 required
               />
             </div>
           </div>
 
-          <div className={styles.inputGroup}>
-            <label htmlFor="email" className={styles.label}>
+          <div className="risalko-form-group">
+            <label htmlFor="email" className="risalko-label">
               Email
             </label>
             <input
@@ -174,13 +176,13 @@ export default function RegisterPage() {
               placeholder="Enter your email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className={styles.input}
+              className="risalko-input"
               required
             />
           </div>
 
-          <div className={styles.inputGroup}>
-            <label htmlFor="password" className={styles.label}>
+          <div className="risalko-form-group">
+            <label htmlFor="password" className="risalko-label">
               Password
             </label>
             <input
@@ -189,14 +191,14 @@ export default function RegisterPage() {
               placeholder="Create a password (min 6 characters)"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className={styles.input}
+              className="risalko-input"
               required
               minLength={6}
             />
           </div>
 
-          <div className={styles.inputGroup}>
-            <label htmlFor="confirmPassword" className={styles.label}>
+          <div className="risalko-form-group">
+            <label htmlFor="confirmPassword" className="risalko-label">
               Confirm Password
             </label>
             <input
@@ -205,23 +207,23 @@ export default function RegisterPage() {
               placeholder="Confirm your password"
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
-              className={styles.input}
+              className="risalko-input"
               required
             />
           </div>
 
           <button
             type="submit"
-            className={styles.submitButton}
+            className="risalko-btn-primary"
             disabled={isLoading}
           >
             {isLoading ? "Creating account..." : "Register"}
           </button>
         </form>
 
-        <p className={styles.loginLink}>
+        <p className="risalko-text-center risalko-text-muted risalko-mt-4">
           Already have an account?{" "}
-          <a href="/login" className={styles.link}>
+          <a href="/login" className="risalko-link">
             Sign in here
           </a>
         </p>

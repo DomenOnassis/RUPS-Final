@@ -41,7 +41,7 @@ const Classes = () => {
       
       if (!uid) {
         console.error('User object has no id field:', user);
-        alert('Napaka pri prijavi. Prosimo, prijavite se ponovno.');
+        alert('Login error. Please try again.');
         router.push('/');
         return;
       }
@@ -113,7 +113,7 @@ const Classes = () => {
         }
       } catch (error) {
         console.error('Error fetching classes:', error);
-        alert('Napaka pri nalaganju razredov.');
+        alert('Error loading classes.');
       } finally {
         setLoading(false);
       }
@@ -127,7 +127,7 @@ const Classes = () => {
   };
 
   const handleDelete = async (id: number) => { 
-    if (!confirm('Ste prepričani, da želite izbrisati ta razred?')) return;
+    if (!confirm('Are you sure you want to delete this class?')) return;
 
     try {
       const res = await fetch(`http://127.0.0.1:8000/api/classes/${id}`, { method: 'DELETE' });
@@ -138,10 +138,10 @@ const Classes = () => {
 
       console.log(`Class ${id} deleted`);
       setClasses(prev => prev.filter(cls => cls.id !== id));
-      alert('Razred uspešno izbrisan!');
+      alert('Class deleted successfully!');
     } catch (err) {
       console.error('Error deleting class:', err);
-      alert('Napaka pri brisanju razreda.');
+      alert('Error deleting class.');
     }
   };
 
@@ -155,87 +155,96 @@ const Classes = () => {
   const isTeacher = userType === "teacher";
 
   return (
-    <div className="background">
-      <div className="mx-auto">
-        {/* Header */}
-        <div className="flex justify-between items-center mb-8 bg-gray-700/90 p-8">
+    <div className="risalko-app">
+      {/* Header */}
+      <header className="risalko-header">
+        <div className="risalko-header-content">
           <div>
-            <h1 className="text-3xl font-bold text-gray-200">
-              {isTeacher ? 'Vaše učilnice' : 'Moje učilnice'}
+            <h1 className="risalko-header-title">
+              {isTeacher ? 'Your Classes' : 'My Classes'}
             </h1>
-            <p className="text-gray-200 font-semibold text-lg">
-              Dobrodošli nazaj, <span className="text-yellow-100">{userName}</span> 👋
+            <p className="risalko-header-subtitle">
+              Welcome back, <span className="text-indigo-600 font-medium">{userName}</span>
             </p>
           </div>
 
-          <div className="flex gap-4 items-center">
+          <div className="flex gap-3 items-center">
             {isTeacher && (
               <Link
                 href="/classes/createClass"
-                className="btn bg-yellow-100 text-text"
+                className="risalko-btn-primary"
               >
-                + Ustvari nov razred
+                + New Class
               </Link>
             )}
             <button
               onClick={handleLogout}
-              className="flex items-center gap-2 btn bg-red-500 hover:bg-red-600 text-white"
+              className="risalko-btn-ghost flex items-center gap-2"
             >
-              <LogOut size={20} />
-              Odjava
+              <LogOut size={18} />
+              Logout
             </button>
           </div>
         </div>
+      </header>
 
+      <main className="risalko-content">
         {loading ? (
-          <p className="text-text text-center">Nalaganje vaših učilnic...</p>
+          <div className="risalko-loading">
+            <div className="risalko-spinner"></div>
+          </div>
         ) : classes.length === 0 ? (
-          <p className="text-text text-center">
-            {isTeacher ? 'Ni najdenih učilnic. Ustvarite jo!' : 'Ni najdenih učilnic.'}
-          </p>
+          <div className="risalko-empty">
+            <div className="risalko-empty-icon">📚</div>
+            <p className="risalko-empty-title">
+              {isTeacher ? 'No classes yet' : 'No classes found'}
+            </p>
+            <p className="risalko-empty-text">
+              {isTeacher ? 'Create your first class to get started' : 'You haven\'t been added to any classes yet'}
+            </p>
+          </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 p-8 flex justify-between items-center">
+          <div className="risalko-grid">
             {classes.map((cls, index) => (
               <div
                 key={cls.id || index}
-                className="card relative group max-w-md cursor-pointer"
-                style={{ backgroundColor: cls.color || '#60A5FA' }}
+                className="risalko-card-interactive relative group"
+                style={{ borderLeft: `3px solid ${cls.color || '#6366F1'}` }}
                 onClick={() => router.push(`/classes/${cls.id}`)}
               >
                 {isTeacher && (
                   <div
-                    className="absolute bottom-2 right-3 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity"
+                    className="absolute top-3 right-3 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity"
                     onClick={(e) => e.stopPropagation()}
                   >
                     <button
                       onClick={() => handleEdit(cls.id as number)}
-                      className="p-2 rounded-md hover:bg-gray-200 transition text-black"
+                      className="risalko-icon-btn"
                       title="Edit Class"
                     >
-                      <Pencil size={20} />
+                      <Pencil size={16} />
                     </button>
                     <button
                       onClick={() => handleDelete(cls.id as number)}
-                      className="p-2 rounded-md hover:bg-red-400 text-black transition"
+                      className="risalko-icon-btn-danger"
                       title="Delete Class"
                     >
-                      <Trash2 size={20} />
+                      <Trash2 size={16} />
                     </button>
                   </div>
                 )}
 
-                <h2 className="text-xl font-semibold text-text mb-2">
-                  {cls.class_name || 'Neimenovana učilnica'}
+                <h2 className="text-base font-semibold text-neutral-900 mb-1">
+                  {cls.class_name || 'Untitled Class'}
                 </h2>
-                <p className="text-text-muted mt-3 font-medium">
-                  👥 {cls.students?.length || 0}{' '}
-                  {cls.students?.length === 1 ? 'Učenec' : 'Učenci'}
+                <p className="text-neutral-500 text-sm">
+                  {cls.students?.length || 0} {cls.students?.length === 1 ? 'student' : 'students'}
                 </p>
               </div>
             ))}
           </div>
         )}
-      </div>
+      </main>
     </div>
   );
 };
