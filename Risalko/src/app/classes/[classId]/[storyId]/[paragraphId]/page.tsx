@@ -3,7 +3,7 @@
 import { useParams, useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import DrawingCanvas from "../../../../../components/DrawingCanvas";
-import { Save, ArrowLeft } from "lucide-react";
+import { Save, ArrowLeft, Zap } from "lucide-react";
 
 interface Paragraph {
   _id: string | { $oid: string };
@@ -11,6 +11,8 @@ interface Paragraph {
   content: string;
   drawing: string | null;
   order: number;
+  paragraph_type?: string;
+  circuit_instruction?: string;
 }
 
 export default function ParagraphDrawPage() {
@@ -24,6 +26,18 @@ export default function ParagraphDrawPage() {
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [canvasRef, setCanvasRef] = useState<HTMLCanvasElement | null>(null);
+  const [showVezalkoButton, setShowVezalkoButton] = useState(false);
+
+  // Check if the paragraph content mentions circuits/electric
+  const isCircuitRelated = (content: string) => {
+    const circuitKeywords = [
+      'circuit', 'vezje', 'electric', 'elektrik', 'battery', 'baterij',
+      'bulb', 'žarnic', 'switch', 'stikalo', 'wire', 'žic', 'resistor',
+      'upor', 'LED', 'lamp', 'current', 'tok', 'voltage', 'napetost'
+    ];
+    const lowerContent = content.toLowerCase();
+    return circuitKeywords.some(keyword => lowerContent.includes(keyword.toLowerCase()));
+  };
 
   useEffect(() => {
     const fetchParagraph = async () => {
@@ -39,6 +53,10 @@ export default function ParagraphDrawPage() {
 
         if (data.data) {
           setParagraph(data.data);
+          // Show Vezalko button if paragraph is circuit-type or content mentions circuits
+          if (data.data.paragraph_type === 'circuit' || isCircuitRelated(data.data.content)) {
+            setShowVezalkoButton(true);
+          }
         } else {
           setError("Paragraph not found");
         }
@@ -89,14 +107,18 @@ export default function ParagraphDrawPage() {
       });
 
       alert("Image saved successfully!");
-      // Redirect back to story
-      router.push(`/classes/${classId}/${storyId}`);
+      // Don't redirect - stay on page so user can try in Vezalko if applicable
     } catch (err) {
       console.error("Error saving:", err);
       alert("Error saving image");
     } finally {
       setSaving(false);
     }
+  };
+
+  const handleTryInVezalko = () => {
+    // Navigate to the split-screen Vezalko workspace page
+    router.push(`/classes/${classId}/${storyId}/${paragraphId}/vezalko`);
   };
 
   if (loading) {
@@ -133,7 +155,7 @@ export default function ParagraphDrawPage() {
       <header className="px-4 py-3 flex-shrink-0 bg-white border-b border-neutral-200 shadow-sm">
         <div className="flex items-center justify-between max-w-6xl mx-auto">
           <button
-            onClick={() => router.back()}
+            onClick={() => router.push(`/classes/${classId}/${storyId}`)}
             className="risalko-back-btn"
           >
             <ArrowLeft size={20} />
@@ -142,14 +164,16 @@ export default function ParagraphDrawPage() {
           <div className="text-center flex-1">
             <h1 className="text-lg font-semibold text-neutral-800">Illustrate Paragraph #{paragraph.order}</h1>
           </div>
-          <button
-            onClick={handleSave}
-            disabled={saving}
-            className="risalko-btn risalko-btn-primary flex items-center gap-2 disabled:opacity-50"
-          >
-            <Save size={18} />
-            {saving ? "Saving..." : "Save"}
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={handleSave}
+              disabled={saving}
+              className="risalko-btn risalko-btn-primary flex items-center gap-2 disabled:opacity-50"
+            >
+              <Save size={18} />
+              {saving ? "Saving..." : "Save"}
+            </button>
+          </div>
         </div>
       </header>
 
@@ -165,9 +189,23 @@ export default function ParagraphDrawPage() {
         <DrawingCanvas onCanvasMount={setCanvasRef} initialImage={paragraph.drawing} />
       </div>
 
-      {/* Footer */}
-      <footer className="px-4 py-2 flex-shrink-0 bg-white text-center text-sm text-neutral-500 border-t border-neutral-200">
-        Draw your illustration! Click Save when you're done.
+      {/* Footer with Vezalko integration */}
+      <footer className="px-4 py-3 flex-shrink-0 bg-white border-t border-neutral-200">
+        <div className="max-w-6xl mx-auto flex items-center justify-between">
+          <p className="text-sm text-neutral-500">
+            Draw your illustration! Click Save when you're done.
+          </p>
+          
+          {showVezalkoButton && paragraph.drawing && (
+            <button
+              onClick={handleTryInVezalko}
+              className="flex items-center gap-2 px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white rounded-lg font-medium transition-colors"
+            >
+              <Zap size={18} />
+              Try it in Vezalko
+            </button>
+          )}
+        </div>
       </footer>
     </div>
   );

@@ -14,6 +14,9 @@ class Paragraph(SQLModel, table=True):
     content: str
     drawing: Optional[str] = Field(default=None)  # Base64 or URL
     order: int = Field(default=0)
+    paragraph_type: str = Field(default="text")
+    circuit_instruction: Optional[str] = Field(default=None)
+    vezalko_circuit_id: Optional[int] = Field(default=None)
     
     # Relationships
     story: "Story" = Relationship(back_populates="paragraphs")

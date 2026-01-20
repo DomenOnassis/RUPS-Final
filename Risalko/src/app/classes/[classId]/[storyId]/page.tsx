@@ -7,6 +7,7 @@ import Link from "next/link";
 interface Paragraph {
   id: number;
   story_id: number;
+  user_id: number;  // The user this paragraph is assigned to
   content: string;
   drawing: string | null;
   order: number;
@@ -53,27 +54,23 @@ export default function StoryPage() {
   const [saving, setSaving] = useState<number | null>(null);
   const [userType, setUserType] = useState<string | null>(null);
   const [userId, setUserId] = useState<number | null>(null);
-  const [userParagraphs, setUserParagraphs] = useState<number[]>([]);
   const [isFinalizingStory, setIsFinalizingStory] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
         // Get user info first
-        let userType: string | null = null;
-        let userParagraphIds: number[] = [];
+        let currentUserType: string | null = null;
+        let currentUserId: number | null = null;
         
         const userStored = localStorage.getItem('user');
         if (userStored) {
           try {
             const user = JSON.parse(userStored);
-            userType = user.type || null;
-            setUserType(userType);
-            setUserId(user.id);
-            
-            // Normalize paragraph IDs from user object
-            userParagraphIds = user.paragraphs || [];
-            setUserParagraphs(userParagraphIds);
+            currentUserType = user.type || null;
+            currentUserId = user.id || null;
+            setUserType(currentUserType);
+            setUserId(currentUserId);
           } catch (e) {
             console.error('Failed to parse user from localStorage', e);
           }
@@ -99,10 +96,11 @@ export default function StoryPage() {
         const paragraphsData = await paragraphsRes.json();
         let paragraphs = paragraphsData.data || [];
 
-        if (userType === "student") {
+        if (currentUserType === "student" && currentUserId) {
+          // Filter paragraphs assigned to this student by checking paragraph.user_id
           paragraphs = paragraphs.filter((p: Paragraph) => {
-            const isAssigned = userParagraphIds.includes(p.id);
-            console.log(`Paragraph ${p.id} assigned to student:`, isAssigned, 'User paragraphs:', userParagraphIds);
+            const isAssigned = p.user_id === currentUserId;
+            console.log(`Paragraph ${p.id} user_id: ${p.user_id}, current user: ${currentUserId}, assigned:`, isAssigned);
             return isAssigned;
           });
         }
@@ -119,7 +117,11 @@ export default function StoryPage() {
           return;
         }
 
-        const students = classData.data.students || [];
+        // Normalize students to ensure paragraphs is always an array
+        const students = (classData.data.students || []).map((s: any) => ({
+          ...s,
+          paragraphs: s.paragraphs || [],
+        }));
         
         const assignments = new Map<number, number>();
         
@@ -159,7 +161,8 @@ export default function StoryPage() {
         const oldStudent = data.students.find(s => s.id === oldStudentId);
         
         if (oldStudent) {
-          const updatedParagraphs = oldStudent.paragraphs.filter(pId => pId !== paragraphId);
+          const currentParagraphs = oldStudent.paragraphs || [];
+          const updatedParagraphs = currentParagraphs.filter(pId => pId !== paragraphId);
           
           await fetch(`http://127.0.0.1:8000/api/users/${oldStudentId}`, {
             method: "PATCH",
@@ -175,7 +178,8 @@ export default function StoryPage() {
         const newStudent = data.students.find(s => s.id === newStudentIdNum);
         
         if (newStudent) {
-          const updatedParagraphs = [...newStudent.paragraphs, paragraphId];
+          const currentParagraphs = newStudent.paragraphs || [];
+          const updatedParagraphs = [...currentParagraphs, paragraphId];
           
           await fetch(`http://127.0.0.1:8000/api/users/${newStudentIdNum}`, {
             method: "PATCH",
@@ -194,15 +198,16 @@ export default function StoryPage() {
         }
         
         const updatedStudents = prev.students.map(student => {
+          const studentParagraphs = student.paragraphs || [];
           if (student.id === oldStudentId) {
             return {
               ...student,
-              paragraphs: student.paragraphs.filter(pId => pId !== paragraphId),
+              paragraphs: studentParagraphs.filter(pId => pId !== paragraphId),
             };
           } else if (student.id === newStudentIdNum) {
             return {
               ...student,
-              paragraphs: [...student.paragraphs, paragraphId],
+              paragraphs: [...studentParagraphs, paragraphId],
             };
           }
           return student;

@@ -20,6 +20,10 @@ export default class WorkspaceScene extends Phaser.Scene {
     this.selectedChallengeId = localStorage.getItem("selectedChallengeId");
     this.selectedChallengeTitle = localStorage.getItem("selectedChallengeTitle");
     this.mode = localStorage.getItem("mode") || "sandbox";
+    
+    // Check if embedded in iframe (from Risalko split-screen)
+    const urlParams = new URLSearchParams(window.location.search);
+    this.isEmbedded = urlParams.get('embedded') === 'true';
   }
 
   preload() {
@@ -277,30 +281,33 @@ export default class WorkspaceScene extends Phaser.Scene {
     this.createComponent(panelWidth / 2, 580, "ammeter", 0x00cc66);
     this.createComponent(panelWidth / 2, 660, "voltmeter", 0x00cc66);
 
-    const backButton = this.add
-      .text(12, 10, "↩ Back", {
-        fontFamily: "Arial",
-        fontSize: "20px",
-        color: "#6366F1",
-        padding: { x: 20, y: 10 },
-      })
-      .setOrigin(0, 0)
-      .setInteractive({ useHandCursor: true })
-      .on("pointerover", () => backButton.setStyle({ color: "#4F46E5" }))
-      .on("pointerout", () => backButton.setStyle({ color: "#6366F1" }))
-      .on("pointerdown", () => {
-        this.cameras.main.fade(300, 0, 0, 0);
-        this.time.delayedCall(300, () => {
-          // Use React Router navigation if available
-          if (window.__vezalkoGoBack) {
-            window.__vezalkoGoBack();
-          } else if (this.mode === "challenge") {
-            this.scene.start("ChallengeSelectionScene", { workspaceType: "electric" });
-          } else {
-            this.scene.start("LabScene");
-          }
+    // Only show back button if not embedded in iframe
+    if (!this.isEmbedded) {
+      const backButton = this.add
+        .text(12, 10, "↩ Back", {
+          fontFamily: "Arial",
+          fontSize: "20px",
+          color: "#6366F1",
+          padding: { x: 20, y: 10 },
+        })
+        .setOrigin(0, 0)
+        .setInteractive({ useHandCursor: true })
+        .on("pointerover", () => backButton.setStyle({ color: "#4F46E5" }))
+        .on("pointerout", () => backButton.setStyle({ color: "#6366F1" }))
+        .on("pointerdown", () => {
+          this.cameras.main.fade(300, 0, 0, 0);
+          this.time.delayedCall(300, () => {
+            // Use React Router navigation if available
+            if (window.__vezalkoGoBack) {
+              window.__vezalkoGoBack();
+            } else if (this.mode === "challenge") {
+              this.scene.start("ChallengeSelectionScene", { workspaceType: "electric" });
+            } else {
+              this.scene.start("LabScene");
+            }
+          });
         });
-      });
+    }
 
     // Initialize arrays before challenge setup
     this.placedComponents = [];

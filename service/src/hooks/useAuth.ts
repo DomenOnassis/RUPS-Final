@@ -40,8 +40,13 @@ export function useAuth(redirectIfNotAuth = true) {
   }, [router, redirectIfNotAuth]);
 
   const logout = () => {
+    // Clear all auth data from localStorage
     localStorage.removeItem("user");
     localStorage.removeItem("token");
+    localStorage.removeItem("username");
+    localStorage.removeItem("email");
+    localStorage.removeItem("name");
+    
     setUser(null);
     router.push("/login");
   };

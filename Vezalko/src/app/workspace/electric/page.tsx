@@ -17,16 +17,18 @@ function ElectricWorkspaceContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { isAuthenticated, isLoading } = useAuth();
-  const { mode, currentChallengeId, currentChallengeTitle } = useGameModeStore();
+  const { mode, currentChallengeTitle } = useGameModeStore();
 
   const challengeId = searchParams.get('challenge');
+  const isEmbedded = searchParams.get('embedded') === 'true';
   const isChallenge = mode === 'challenge' && challengeId;
 
   useEffect(() => {
-    if (!isLoading && !isAuthenticated) {
+    // Skip auth check when embedded (auth passed via URL params)
+    if (!isLoading && !isAuthenticated && !isEmbedded) {
       router.push('/login');
     }
-  }, [isAuthenticated, isLoading, router]);
+  }, [isAuthenticated, isLoading, router, isEmbedded]);
 
   if (isLoading) {
     return (
@@ -42,20 +44,24 @@ function ElectricWorkspaceContent() {
     );
   }
 
+  const handleBack = () => {
+    if (isChallenge) {
+      router.push('/challenges?type=electric');
+    } else {
+      router.push('/lab');
+    }
+  };
+
   return (
-    <PhaserGame
-      scene="workspace"
-      mode={isChallenge ? 'challenge' : 'sandbox'}
-      challengeId={challengeId || undefined}
-      challengeTitle={currentChallengeTitle || undefined}
-      onBack={() => {
-        if (isChallenge) {
-          router.push('/challenges?type=electric');
-        } else {
-          router.push('/lab');
-        }
-      }}
-    />
+    <div style={{ position: 'relative', width: '100%', height: '100vh' }}>
+      <PhaserGame
+        scene="workspace"
+        mode={isChallenge ? 'challenge' : 'sandbox'}
+        challengeId={challengeId || undefined}
+        challengeTitle={currentChallengeTitle || undefined}
+        onBack={handleBack}
+      />
+    </div>
   );
 }
 

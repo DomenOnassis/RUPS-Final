@@ -146,10 +146,18 @@ const Classes = () => {
   };
 
   const handleLogout = () => {
+    // Clear all auth and session data
     localStorage.removeItem('user');
     localStorage.removeItem('token');
-    // Redirect to AppLauncher login
-    window.location.href = 'http://localhost:3002/login';
+    localStorage.removeItem('username');
+    localStorage.removeItem('email');
+    localStorage.removeItem('name');
+    localStorage.removeItem('gameMode');
+    localStorage.removeItem('currentChallengeId');
+    localStorage.removeItem('currentChallengeTitle');
+    
+    // Redirect to Service home (which will redirect to login if no user)
+    window.location.href = 'http://localhost:3002/';
   };
 
   const isTeacher = userType === "teacher";

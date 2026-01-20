@@ -53,6 +53,11 @@ export const useAuthStore = create<AuthState>()(
           token: null,
           isAuthenticated: false,
         });
+        
+        // Force redirect to Service home (which will redirect to login if no user)
+        setTimeout(() => {
+          window.location.href = 'http://localhost:3002/';
+        }, 100);
       },
 
       loadFromStorage: () => {
