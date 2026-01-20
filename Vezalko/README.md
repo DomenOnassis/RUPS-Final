@@ -1,36 +1,135 @@
-# RUPS - 2: Updating a Circuit Builder/Simulator project
-*original project: https://github.com/E-nej/RUPS-projekt*
+# Vezalko 2.0 - React/Next.js Circuit Simulator
 
-## Why update project?
-The goal of this assignment was to update the existing project so that it adheres to a new domain: highschool.
+A modern reimplementation of Vezalko using React and Next.js with Konva for canvas rendering.
 
-The project was originaly created for intended use of elementary school students. Our goal is to upgrade the existing components to be used by high school students.
+## Features
 
-## Found Issues
-- The entire project looks foggy and pixelated
-- Input for rotating pieces should be updated, not to rotate while dragging
-- Inconsistent sizes and lines of pieces (redraw)
-- Update style for consistency
-- The current implementation doesnt support series or parallel circuit logic, no voltage division and no current computation
+- **Electric Circuit Builder**: Build circuits with batteries, bulbs, resistors, switches, and wires
+- **Logic Gate Builder**: Create logic circuits with AND, OR, NOT, NAND, NOR, XOR, XNOR gates
+- **Real-time Simulation**: Circuits simulate automatically as you build
+- **Challenge Mode**: Complete challenges to earn points
+- **Sandbox Mode**: Free exploration and experimentation
+- **Leaderboard**: See top players and their scores
+- **Responsive Design**: Works on desktop and tablets
 
-## New Project Components
+## Tech Stack
+
+- **Next.js 15** - React framework with App Router
+- **React 19** - UI library
+- **TypeScript** - Type safety
+- **Tailwind CSS 4** - Styling
+- **Konva / React-Konva** - Canvas rendering
+- **Zustand** - State management
+
+## Getting Started
+
+### Prerequisites
+
+- Node.js 18+
+- npm or yarn
+
+### Installation
+
+```bash
+cd Vezalko-2
+npm install
+```
+
+### Development
+
+```bash
+npm run dev
+```
+
+The app will run on [http://localhost:3001](http://localhost:3001)
+
 ### Backend
-A backend will be added to the project for user authentication, and saving created constructs. (Python)
-### Database
-We will also add a database to be used in the backend. (SQLite)
-### New Additions
-- Fix issues (described above)
-- Option to save circuits
-- Challenges (described later)
-- Add logic gates
-- Input for logic circuits (table), and get the coresponding output (also table)
-- Add zoom and camera movement within the circuit editor
-### Challenges
-When the user loggs in, he can either enter a sandbox mode, or challenge mode.
 
-The challenges are of 2 types:
+This frontend uses the same backend as the original Vezalko. Make sure the backend is running:
 
-#### 1. May there be light
-The user has to make all lights light up, by connecting the circuit correctly, using the limited resources at his disposal.
-#### 2. Logic Challenge
-Get the right input/output for the logic gates, by connecting the circuit with the gates provided.
+```bash
+cd ../Vezalko/backend
+pip install -r requirements.txt
+python main.py
+```
+
+Backend runs on [http://localhost:8000](http://localhost:8000)
+
+## Project Structure
+
+```
+Vezalko-2/
+├── public/
+│   └── assets/          # Component images (battery, bulb, etc.)
+├── src/
+│   ├── app/             # Next.js App Router pages
+│   │   ├── page.tsx     # Home (redirect)
+│   │   ├── login/       # Login page
+│   │   ├── menu/        # Main menu
+│   │   ├── lab/         # Lab/hub page
+│   │   ├── challenges/  # Challenge selection
+│   │   ├── scoreboard/  # Leaderboard
+│   │   └── workspace/   # Circuit workspaces
+│   │       ├── electric/
+│   │       └── logic/
+│   ├── components/      # React components
+│   │   ├── ElectricWorkspace.tsx
+│   │   ├── LogicWorkspace.tsx
+│   │   └── Modal.tsx
+│   ├── config/          # API configuration
+│   ├── hooks/           # Custom hooks
+│   ├── logic/           # Circuit simulation logic
+│   │   ├── Node.ts
+│   │   ├── CircuitGraph.ts
+│   │   └── LogicCircuitGraph.ts
+│   └── store/           # Zustand stores
+│       ├── authStore.ts
+│       ├── workspaceStore.ts
+│       └── logicWorkspaceStore.ts
+└── package.json
+```
+
+## Usage
+
+1. **Login**: Authenticate through the App Launcher
+2. **Menu**: Power on the switch and click Start
+3. **Lab**: Choose workspace type (Electric or Logic)
+4. **Mode**: Select Sandbox or Challenge mode
+5. **Build**: Drag components from the panel to the workspace
+6. **Interact**:
+   - **Drag** - Move components
+   - **Double-click** - Rotate (or toggle switch)
+   - **Right-click** - Delete component
+   - **Ctrl+Z** - Undo
+   - **Ctrl+Y** - Redo
+   - **Mouse wheel** - Zoom
+
+## Comparison with Original
+
+| Feature | Original (Phaser) | New (React) |
+|---------|------------------|-------------|
+| Framework | Phaser 3 | Next.js 15 |
+| Rendering | Canvas (Phaser) | Canvas (Konva) |
+| State | Scene-based | Zustand |
+| UI | Phaser Graphics | React + Tailwind |
+| Performance | Good | Good |
+| Maintainability | Moderate | Excellent |
+| Code Clarity | Game-like | Component-based |
+
+## API Endpoints
+
+Uses the same endpoints as original Vezalko:
+
+- `POST /api/login` - Authentication
+- `GET /api/challenges` - List challenges
+- `GET /api/users/:id/stats` - User statistics
+- `POST /api/users/:id/challenge-complete` - Complete challenge
+- `GET /api/users/leaderboard` - Top players
+
+## Theme
+
+Uses the Risalko design system:
+- **Primary**: Indigo (#6366F1)
+- **Secondary**: Amber (#F59E0B)
+- **Success**: Green (#22C55E)
+- **Error**: Red (#EF4444)
